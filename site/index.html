@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Freeze Ledger</title>
+<meta name="description" content="Every USDT and USDC issuer freeze on Ethereum, Base, Tron and Solana, read from the chain nightly and joined to the public record that explains it. Open dataset with a public verification suite.">
+<meta name="theme-color" content="#0d0d1a">
+<style>
+  :root {
+    --bg: #0d0d1a; --panel: #13132a; --line: #26264a; --ink: #e8e8f4; --muted: #9a9ab8;
+    --accent: #7dd3fc; --eth: #8ea2ff; --base: #4f8cff; --tron: #ff6b6b; --sol: #8ee3c8;
+    --good: #7ee787; --warn: #f2cc60; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #fafafc; --panel: #ffffff; --line: #e3e3ee; --ink: #121226; --muted: #5d5d78; --accent: #0369a1; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.5; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 16px 64px; }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 34px; margin: 6px 0 4px; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); max-width: 70ch; margin: 0 0 24px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 24px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .card .label { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .card .num { font-family: var(--mono); font-size: 28px; margin-top: 4px; }
+  .card .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .row { display: grid; gap: 16px; grid-template-columns: 2fr 1fr; margin-bottom: 24px; }
+  @media (max-width: 800px) { .row { grid-template-columns: 1fr; } }
+  h2 { font-size: 15px; margin: 0 0 10px; font-family: var(--mono); font-weight: 600; letter-spacing: .02em; }
+  svg text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+  .legend { display: flex; gap: 14px; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 500; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 12px; }
+  .addr { max-width: 32ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
+  .pill { display: inline-block; padding: 1px 7px; border-radius: 999px; font-family: var(--mono); font-size: 11px; border: 1px solid var(--line); }
+  .pill.freeze { color: var(--warn); } .pill.unfreeze { color: var(--good); } .pill.destroy { color: var(--tron); }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  input, select, button { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: inherit; }
+  input { flex: 1 1 260px; font-family: var(--mono); font-size: 12px; }
+  button { cursor: pointer; }
+  .bar { height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; display: flex; }
+  .bar span { display: block; height: 100%; }
+  .note { font-size: 12px; color: var(--muted); }
+  .downloads a { margin-right: 14px; font-family: var(--mono); font-size: 12px; }
+  .foot { margin-top: 36px; border-top: 1px solid var(--line); padding-top: 14px; font-size: 12px; color: var(--muted); }
+  .empty { color: var(--muted); font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Open dataset · USDT + USDC · 4 chains · verification suite</div>
+  <h1>Freeze Ledger</h1>
+  <p class="lede">Every address Tether and Circle have frozen or unfrozen on Ethereum, Base, Tron and Solana, read from the chain nightly, each one joined to the public record that explains it — or marked unattributed when none was found. Every figure on this page is recomputed from the raw chain responses by <a id="verify-link" href="#">verify.py</a> before it is published.</p>
+
+  <div class="grid" id="kpis">
+    <div class="card"><div class="label">Events indexed</div><div class="num" id="k-events">—</div><div class="sub" id="k-events-sub"></div></div>
+    <div class="card"><div class="label">Addresses frozen now</div><div class="num" id="k-frozen">—</div><div class="sub" id="k-frozen-sub"></div></div>
+    <div class="card"><div class="label">With a public record</div><div class="num" id="k-attr">—</div><div class="sub" id="k-attr-sub"></div></div>
+    <div class="card"><div class="label">No public record found</div><div class="num" id="k-unattr">—</div><div class="sub">a finding, not a gap</div></div>
+    <div class="card"><div class="label">USDT destroyed</div><div class="num" id="k-destroyed">—</div><div class="sub">balances zeroed after a freeze</div></div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>Freezes per month, by chain</h2>
+      <div id="chart"></div>
+      <div class="legend"><span><i style="background:var(--eth)"></i>Ethereum</span><span><i style="background:var(--base)"></i>Base</span><span><i style="background:var(--tron)"></i>Tron</span><span><i style="background:var(--sol)"></i>Solana</span></div>
+    </div>
+    <div class="card">
+      <h2>Attribution coverage</h2>
+      <div class="bar" id="cov-bar"></div>
+      <div class="legend" style="margin-top:8px"><span><i style="background:var(--good)"></i>High</span><span><i style="background:var(--accent)"></i>Moderate</span><span><i style="background:var(--warn)"></i>Low</span><span><i style="background:var(--line)"></i>Unattributed</span></div>
+      <table style="margin-top:12px"><thead><tr><th>Chain</th><th>Frozen</th><th>Attributed</th></tr></thead><tbody id="cov-table"></tbody></table>
+      <h2 style="margin-top:16px">Sanctions programs named</h2>
+      <div id="programs" class="note"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px">
+    <h2>Events</h2>
+    <div class="controls">
+      <input id="q" placeholder="address, owner, or transaction hash" autocomplete="off">
+      <select id="chain"><option value="">all chains</option><option>ethereum</option><option>base</option><option>tron</option><option>solana</option></select>
+      <select id="action"><option value="">all actions</option><option>freeze</option><option>unfreeze</option><option>destroy</option></select>
+      <select id="token"><option value="">USDT + USDC</option><option>USDT</option><option>USDC</option></select>
+    </div>
+    <div class="note" id="count"></div>
+    <table><thead><tr><th>When (UTC)</th><th>Chain</th><th>Token</th><th>Action</th><th class="mono">Address</th><th>Amount</th><th>Record</th></tr></thead><tbody id="rows"></tbody></table>
+    <div style="margin-top:10px"><button id="more">Show more</button></div>
+  </div>
+
+  <div class="card downloads">
+    <h2>Downloads</h2>
+    <a id="dl-events" href="#">freeze_events.csv</a><a id="dl-attr" href="#">attributions.csv</a><a id="dl-evidence" href="#">evidence.csv</a><a id="dl-latest" href="#">latest.json</a><a id="dl-method" href="#">METHODOLOGY.md</a><a id="dl-repo" href="#">repository</a>
+    <p class="note" style="margin:10px 0 0">Data: CC BY 4.0. Code: MIT. Cite as <span class="mono">Percy, J. Freeze Ledger (<span id="cite-ver">dated release</span>)</span>.</p>
+  </div>
+
+  <div class="foot">
+    <div>Attributions are the author's assessment of public records (OFAC SDN entries, Federal Register notices, DOJ filings, issuer statements), not the issuer's stated reason for a freeze. "No public record found" means exactly that, not that none exists. Addresses the issuers blacklist for internal reasons (their own contracts) are kept in the data, flagged, and excluded from the counts above.</div>
+    <div style="margin-top:6px" id="asof"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Where the data lives. Default: the repo's data/ folder next to site/.
+  // To host this page elsewhere, pass ?data=https://raw.githubusercontent.com/<user>/freeze-ledger/main/data/
+  const params = new URLSearchParams(location.search);
+  const DATA = (params.get('data') || '../data/').replace(/\/?$/, '/');
+  const REPO = params.get('repo') || 'https://github.com/jakepercy/freeze-ledger';
+  const CHAINS = ['ethereum', 'base', 'tron', 'solana'];
+  const COLORS = { ethereum: 'var(--eth)', base: 'var(--base)', tron: 'var(--tron)', solana: 'var(--sol)' };
+  const EXPLORER = {
+    ethereum: a => `https://etherscan.io/address/${a}`,
+    base: a => `https://basescan.org/address/${a}`,
+    tron: a => `https://tronscan.org/#/address/${a}`,
+    solana: a => `https://solscan.io/account/${a}`,
+  };
+  const TX = {
+    ethereum: t => `https://etherscan.io/tx/${t}`,
+    base: t => `https://basescan.org/tx/${t}`,
+    tron: t => `https://tronscan.org/#/transaction/${t}`,
+    solana: t => `https://solscan.io/tx/${t}`,
+  };
+  const $ = id => document.getElementById(id);
+  const fmt = n => (n === null || n === undefined) ? '—' : Number(n).toLocaleString('en-US');
+
+  for (const [id, f] of [['dl-events', 'freeze_events.csv'], ['dl-attr', 'attributions.csv'], ['dl-evidence', 'evidence.csv'], ['dl-latest', 'latest.json']]) $(id).href = DATA + f;
+  $('dl-method').href = REPO + '/blob/main/METHODOLOGY.md';
+  $('dl-repo').href = REPO;
+  $('verify-link').href = REPO + '/blob/main/verify.py';
+
+  // --- tiny RFC-4180 CSV parser (quoted fields, embedded commas/newlines) ---
+  function parseCSV(text) {
+    const rows = []; let row = [], field = '', i = 0, q = false;
+    while (i < text.length) {
+      const c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+        else field += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(field); rows.push(row); row = []; field = ''; }
+      else field += c;
+      i++;
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    const head = rows.shift() || [];
+    return rows.filter(r => r.length === head.length).map(r => Object.fromEntries(head.map((h, j) => [h, r[j]])));
+  }
+
+  // --- latest.json: KPIs, chart, coverage ---
+  fetch(DATA + 'latest.json').then(r => r.json()).then(v => {
+    $('k-events').textContent = fmt(v.events_public);
+    $('k-events-sub').textContent = `${fmt(v.events_issuer_internal)} issuer-internal rows excluded`;
+    $('k-frozen').textContent = fmt(v.currently_frozen_total);
+    $('k-frozen-sub').textContent = CHAINS.filter(c => v.currently_frozen[c]).map(c => `${c} ${fmt(Object.values(v.currently_frozen[c]).reduce((a, b) => a + b, 0))}`).join(' · ');
+    const cov = v.attribution_coverage || {};
+    const attributed = (cov.high || 0) + (cov.moderate || 0) + (cov.low || 0);
+    $('k-attr').textContent = fmt(attributed);
+    $('k-attr-sub').textContent = `high ${fmt(cov.high)} · moderate ${fmt(cov.moderate)} · low ${fmt(cov.low)}`;
+    $('k-unattr').textContent = cov.unattributed_share == null ? '—' : `${(cov.unattributed_share * 100).toFixed(1)}%`;
+    const destroyed = Object.values(v.destroyed_usdt_by_chain || {}).reduce((a, b) => a + Number(b), 0);
+    $('k-destroyed').textContent = destroyed ? `$${fmt(Math.round(destroyed))}` : '—';
+    $('asof').textContent = `Generated ${v.generated_at || '—'} · ${fmt(v.events_total)} rows in freeze_events.csv · coverage: ` +
+      CHAINS.map(c => { const s = (v.coverage_span || {})[c] || {}; return s.first ? `${c} ${s.first.slice(0, 10)} → ${s.last.slice(0, 10)}` : `${c} (none yet)`; }).join(' · ');
+    $('cite-ver').textContent = (v.generated_at || '').slice(0, 10) || 'dated release';
+
+    // coverage bar
+    const n = cov.frozen_addresses || 0;
+    const bar = $('cov-bar'); bar.innerHTML = '';
+    for (const [k, color] of [['high', 'var(--good)'], ['moderate', 'var(--accent)'], ['low', 'var(--warn)'], ['unattributed', 'var(--line)']]) {
+      const s = document.createElement('span'); s.style.width = n ? `${(cov[k] || 0) / n * 100}%` : '0'; s.style.background = color; s.title = `${k}: ${fmt(cov[k])}`; bar.appendChild(s);
+    }
+    const ct = $('cov-table'); ct.innerHTML = '';
+    for (const c of CHAINS) { const s = (v.attribution_coverage_by_chain || {})[c] || {}; ct.insertAdjacentHTML('beforeend', `<tr><td>${c}</td><td class="mono">${fmt(s.frozen_addresses)}</td><td class="mono">${fmt(s.attributed)}</td></tr>`); }
+    $('programs').innerHTML = (v.top_programs || []).length ? v.top_programs.map(([p, k]) => `<span class="pill">${p} · ${k}</span>`).join(' ') : '<span class="empty">none yet</span>';
+
+    // chart: stacked monthly bars
+    const series = (v.monthly_freezes || []).slice(-36);
+    const W = 680, H = 220, L = 44, B = 28, T = 12;
+    const max = Math.max(1, ...series.map(m => CHAINS.reduce((a, c) => a + (m[c] || 0), 0)));
+    const bw = Math.max(2, (W - L - 8) / Math.max(1, series.length) - 2);
+    let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Freezes per month by chain">`;
+    for (let g = 0; g <= 4; g++) { const y = T + (H - T - B) * (1 - g / 4); svg += `<line x1="${L}" x2="${W}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${L - 6}" y="${y + 4}" text-anchor="end">${Math.round(max * g / 4)}</text>`; }
+    series.forEach((m, i) => {
+      let y = T + (H - T - B); const x = L + i * (bw + 2);
+      for (const c of CHAINS) { const h = (m[c] || 0) / max * (H - T - B); if (!h) continue; y -= h; svg += `<rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${COLORS[c]}"><title>${m.month} ${c}: ${m[c]}</title></rect>`; }
+      if (i % Math.ceil(series.length / 8) === 0 || i === series.length - 1) svg += `<text x="${x + bw / 2}" y="${H - 8}" text-anchor="middle">${m.month}</text>`;
+    });
+    svg += '</svg>';
+    $('chart').innerHTML = series.length ? svg : '<div class="empty">no events yet — run the indexer</div>';
+  }).catch(e => { $('asof').textContent = `latest.json not found at ${DATA} (${e})`; });
+
+  // --- events table ---
+  let events = [], attr = {}, shown = 0;
+  const PAGE = 100;
+  const attrFor = (chain, address) => (attr[`${chain}|${address}`] || []);
+  function render(reset) {
+    const q = $('q').value.trim().toLowerCase(), chain = $('chain').value, action = $('action').value, token = $('token').value;
+    const filtered = events.filter(e => (!chain || e.chain === chain) && (!action || e.action === action) && (!token || e.token === token) &&
+      (!q || e.address.toLowerCase().includes(q) || (e.owner_address || '').toLowerCase().includes(q) || e.tx_hash.toLowerCase().includes(q)));
+    if (reset) { shown = 0; $('rows').innerHTML = ''; }
+    const next = filtered.slice(shown, shown + PAGE);
+    $('rows').insertAdjacentHTML('beforeend', next.map(e => {
+      const a = attrFor(e.chain, e.address);
+      const best = a.sort((x, y) => ({ high: 3, moderate: 2, low: 1 }[y.confidence] - { high: 3, moderate: 2, low: 1 }[x.confidence]))[0];
+      const rec = best ? `<a href="${best.evidence_url}" target="_blank" rel="noopener">${best.entity || best.source_class}</a> <span class="pill">${best.confidence}</span>` : `<span class="note">unattributed</span>`;
+      const internal = e.issuer_internal === 'true' ? ' <span class="pill">issuer-internal</span>' : '';
+      return `<tr><td class="mono"><a href="${TX[e.chain](e.tx_hash)}" target="_blank" rel="noopener">${e.block_time.replace('T', ' ').replace('Z', '')}</a></td><td>${e.chain}</td><td>${e.token}</td><td><span class="pill ${e.action}">${e.action}</span></td>` +
+        `<td class="mono"><a class="addr" href="${EXPLORER[e.chain](e.address)}" target="_blank" rel="noopener" title="${e.address}">${e.address}</a>${e.owner_address ? `<br><span class="note">owner ${e.owner_address.slice(0, 8)}…</span>` : ''}${internal}</td>` +
+        `<td class="mono">${e.amount ? Number(e.amount).toLocaleString('en-US', { maximumFractionDigits: 2 }) : ''}</td><td>${rec}</td></tr>`;
+    }).join(''));
+    shown += next.length;
+    $('count').textContent = `${fmt(filtered.length)} of ${fmt(events.length)} events · showing ${fmt(shown)}`;
+    $('more').style.display = shown < filtered.length ? '' : 'none';
+  }
+  Promise.all([
+    fetch(DATA + 'freeze_events.csv').then(r => r.ok ? r.text() : '').then(t => parseCSV(t)),
+    fetch(DATA + 'attributions.csv').then(r => r.ok ? r.text() : '').then(t => parseCSV(t)).catch(() => []),
+  ]).then(([ev, at]) => {
+    events = ev.sort((a, b) => b.block_time.localeCompare(a.block_time) || Number(b.block_number) - Number(a.block_number));
+    for (const r of at) { if (r.superseded_by) continue; (attr[`${r.chain}|${r.address}`] ||= []).push(r); }
+    render(true);
+  }).catch(e => { $('count').textContent = `could not load freeze_events.csv from ${DATA} (${e})`; });
+  for (const id of ['q', 'chain', 'action', 'token']) $(id).addEventListener('input', () => render(true));
+  $('more').addEventListener('click', () => render(false));
+})();
+</script>
+</body>
+</html>
