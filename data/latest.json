@@ -1,0 +1,178 @@
+{
+  "attribution_coverage": {
+    "frozen_addresses": 0,
+    "high": 0,
+    "low": 0,
+    "moderate": 0,
+    "unattributed": 0,
+    "unattributed_share": null
+  },
+  "attribution_coverage_by_chain": {
+    "base": {
+      "attributed": 0,
+      "frozen_addresses": 0,
+      "unattributed": 0
+    },
+    "ethereum": {
+      "attributed": 0,
+      "frozen_addresses": 0,
+      "unattributed": 0
+    },
+    "solana": {
+      "attributed": 0,
+      "frozen_addresses": 0,
+      "unattributed": 0
+    },
+    "tron": {
+      "attributed": 0,
+      "frozen_addresses": 0,
+      "unattributed": 0
+    }
+  },
+  "by_chain_action": {},
+  "by_token_action": {},
+  "checkpoints": {},
+  "coverage_span": {
+    "base": {
+      "events": 0,
+      "first": null,
+      "last": null
+    },
+    "ethereum": {
+      "events": 0,
+      "first": null,
+      "last": null
+    },
+    "solana": {
+      "events": 0,
+      "first": null,
+      "last": null
+    },
+    "tron": {
+      "events": 0,
+      "first": null,
+      "last": null
+    }
+  },
+  "currently_frozen": {},
+  "currently_frozen_total": 0,
+  "destroyed_usdt_by_chain": {},
+  "events_issuer_internal": 0,
+  "events_public": 0,
+  "events_total": 0,
+  "files": {
+    "attributions.csv": {
+      "rows": 0,
+      "sha256": ""
+    },
+    "evidence.csv": {
+      "sha256": ""
+    },
+    "freeze_events.csv": {
+      "rows": 0,
+      "sha256": ""
+    }
+  },
+  "generated_at": "2026-10-14T02:58:08Z",
+  "last_run": {},
+  "monthly_freezes": [],
+  "registry": [
+    {
+      "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "chain": "ethereum",
+      "events": {
+        "AddedBlackList(address)": {
+          "action": "freeze",
+          "topic0": "0x42e160154868087d6bfdc0ca23d96a1c1cfa32f1b72ba9ba27b69b98a0d819dc"
+        },
+        "DestroyedBlackFunds(address,uint256)": {
+          "action": "destroy",
+          "topic0": "0x61e6e66b0d6339b2980aecc6ccc0039736791f0ccde9ed512e789a7fbdd698c6"
+        },
+        "RemovedBlackList(address)": {
+          "action": "unfreeze",
+          "topic0": "0xd7e9ec6e6ecd65492dce6bf513cd6867560d49544421d0783ddf06e76c24470c"
+        }
+      },
+      "issuer": "tether",
+      "source": "https://tether.to/en/transparency/ (Ethereum ERC-20 contract) and https://etherscan.io/token/0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "token": "USDT"
+    },
+    {
+      "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "chain": "ethereum",
+      "events": {
+        "Blacklisted(address)": {
+          "action": "freeze",
+          "topic0": "0xffa4e6181777692565cf28528fc88fd1516ea86b56da075235fa575af6a4b855"
+        },
+        "UnBlacklisted(address)": {
+          "action": "unfreeze",
+          "topic0": "0x117e3210bb9aa7d9baff172026820255c6f6c30ba8999d1c2fd88e2848137c4e"
+        }
+      },
+      "issuer": "circle",
+      "source": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+      "token": "USDC"
+    },
+    {
+      "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "chain": "base",
+      "events": {
+        "Blacklisted(address)": {
+          "action": "freeze",
+          "topic0": "0xffa4e6181777692565cf28528fc88fd1516ea86b56da075235fa575af6a4b855"
+        },
+        "UnBlacklisted(address)": {
+          "action": "unfreeze",
+          "topic0": "0x117e3210bb9aa7d9baff172026820255c6f6c30ba8999d1c2fd88e2848137c4e"
+        }
+      },
+      "issuer": "circle",
+      "source": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+      "token": "USDC"
+    },
+    {
+      "address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+      "chain": "tron",
+      "events": {
+        "AddedBlackList(address)": {
+          "action": "freeze"
+        },
+        "DestroyedBlackFunds(address,uint256)": {
+          "action": "destroy"
+        },
+        "RemovedBlackList(address)": {
+          "action": "unfreeze"
+        }
+      },
+      "issuer": "tether",
+      "source": "https://tether.to/en/transparency/ (Tron TRC-20 contract) and https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+      "token": "USDT"
+    },
+    {
+      "chain": "solana",
+      "instructions": {
+        "freezeAccount": "freeze",
+        "thawAccount": "unfreeze"
+      },
+      "issuer": "circle",
+      "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "source": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+      "token": "USDC"
+    },
+    {
+      "chain": "solana",
+      "instructions": {
+        "freezeAccount": "freeze",
+        "thawAccount": "unfreeze"
+      },
+      "issuer": "tether",
+      "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "source": "https://tether.to/en/transparency/ (Solana SPL mint)",
+      "token": "USDT"
+    }
+  ],
+  "schema_version": 1,
+  "top_programs": []
+}

@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+.venv/
+
+# The SDN XML is ~hundreds of MB; its hash and size are indexed in data/evidence.csv instead.
+evidence/sdn/
+
+# Scratch
+*.tmp
+data/*.tmp
