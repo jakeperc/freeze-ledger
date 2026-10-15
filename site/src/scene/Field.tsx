@@ -8,8 +8,8 @@ import gsap from "gsap";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { SiteJson } from "../lib/data";
-import { computeColors, computeLayouts, type LayoutResult } from "../lib/layouts";
-import { useStore, type ColorMode, type Layout } from "../lib/store";
+import { computeColors, computeLayouts, SCENE_H, SCENE_W, type LayoutResult } from "../lib/layouts";
+import { isWide, TEXT_COLUMN_PX, useStore, type ColorMode, type Layout } from "../lib/store";
 
 const vert = /* glsl */ `
   attribute vec3 aFrom;
@@ -69,8 +69,19 @@ export interface FieldHandle {
 export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHandle) => void }) {
   const pointsRef = useRef<THREE.Points>(null!);
   const matRef = useRef<THREE.ShaderMaterial>(null!);
-  const { gl, size } = useThree();
-  const narrow = size.width < size.height;
+  const { gl, size, camera } = useThree();
+  const wide = isWide();
+  // Where the floating chapter text ends, in scene units at z=0, so layouts that
+  // can move (clusters, rings) sit beside it. Mirrors the camera fit in Scene's
+  // Framing; rounded so a window resize does not recompute every pixel.
+  const textRight = useMemo(() => {
+    if (!wide) return null;
+    const aspect = size.width / size.height;
+    const tan = Math.tan(((camera as THREE.PerspectiveCamera).fov * Math.PI) / 360);
+    const z = Math.max((SCENE_W / 2 + 0.8) / (tan * aspect), (SCENE_H / 2 + 1.0) / tan);
+    const halfW = z * tan * aspect;
+    return Math.round((-halfW + (2 * halfW * TEXT_COLUMN_PX) / size.width) * 4) / 4;
+  }, [wide, size.width, size.height, camera]);
   const layout = useStore((s) => s.layout);
   const colorMode = useStore((s) => s.colorMode);
   const hovered = useStore((s) => s.hovered);
@@ -79,9 +90,10 @@ export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHa
   const reduced = useStore((s) => s.reducedMotion);
   const drawer = useStore((s) => s.drawer);
 
-  const { layouts, colors, geometry, n } = useMemo(() => {
-    const layouts = computeLayouts(site, narrow);
-    const colors = computeColors(site);
+  const layouts = useMemo(() => computeLayouts(site, textRight), [site, textRight]);
+  const colors = useMemo(() => computeColors(site), [site]);
+  // built once per dataset; later layout changes morph the existing points
+  const { geometry, n } = useMemo(() => {
     const n = site.n;
     const geometry = new THREE.BufferGeometry();
     const initial = layouts[useStore.getState().layout].positions;
@@ -111,8 +123,9 @@ export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHa
     geometry.setAttribute("aDelay", new THREE.BufferAttribute(delay, 1));
     geometry.setAttribute("aHidden", new THREE.BufferAttribute(hidden, 1));
     geometry.computeBoundingSphere();
-    return { layouts, colors, geometry, n };
-  }, [site, narrow]);
+    return { geometry, n };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [site]);
 
   useEffect(() => { onReady?.({ layouts }); }, [layouts, onReady]);
 
@@ -170,6 +183,15 @@ export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHa
     state.current.tween = gsap.to(uniforms.uProgress, { value: 1, duration: 1.9, ease: "none" });
   };
 
+  // the window changed enough to move the clusters or rings: glide them over
+  const builtWith = useRef(layouts);
+  useEffect(() => {
+    if (builtWith.current === layouts) return;
+    builtWith.current = layouts;
+    morph(state.current.layout, state.current.colorMode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layouts]);
+
   useEffect(() => {
     if (state.current.layout === layout && state.current.colorMode === colorMode) return;
     state.current.layout = layout;
@@ -196,9 +218,11 @@ export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHa
   };
   const onOut = () => { lastHover.current = null; setHovered(null); };
   const onClick = (e: ThreeEvent<MouseEvent>) => {
-    if (e.index === undefined || site.internal[e.index]) return;
+    // open the point the tooltip is showing; the click's own ray can land on a neighbour
+    const index = lastHover.current ?? e.index;
+    if (index === undefined || site.internal[index]) return;
     e.stopPropagation();
-    openDrawer({ kind: "event", index: e.index });
+    openDrawer({ kind: "event", index });
   };
 
   return (

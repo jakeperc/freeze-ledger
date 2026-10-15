@@ -32,6 +32,14 @@ interface State {
   setTimeCut: (v: number) => void;
 }
 
+/** Wide landscape screens float the chapters over the field; everything else
+ *  stacks the field above them. Matches the `wide:` variant in styles.css. */
+export const WIDE_QUERY = "(min-width: 768px) and (orientation: landscape)";
+export const isWide = () => typeof matchMedia !== "undefined" && matchMedia(WIDE_QUERY).matches;
+/** Right edge of the chapter text column in CSS px when it floats over the field
+ *  (34rem of text plus the 2rem gutter, with a little air). */
+export const TEXT_COLUMN_PX = 600;
+
 const params = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
 const initialLayout = (["timeline", "entities", "chains"].includes(params.get("hero") ?? "") ? params.get("hero") : "timeline") as Layout;
 

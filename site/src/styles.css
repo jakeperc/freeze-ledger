@@ -6,6 +6,11 @@
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
 
+/* The chapters float over the field only on wide landscape screens; tall
+   windows (phones, portrait tablets, narrow desktop windows) stack the field
+   above the text instead. Keep in sync with WIDE_QUERY in lib/store.ts. */
+@custom-variant wide (@media (min-width: 768px) and (orientation: landscape));
+
 /* ------------------------------------------------------------------ tokens
    A registry, not a dashboard. Dark like the rest of jakepercy.com, but the
    meaning-bearing colors are the states of a balance: frost (frozen), sage
@@ -100,7 +105,7 @@ a:hover {
   height: 56vh;
   height: 56dvh;
 }
-@media (min-width: 768px) {
+@media (min-width: 768px) and (orientation: landscape) {
   .scene-pin {
     height: 100vh;
     height: 100dvh;
