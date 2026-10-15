@@ -254,14 +254,20 @@ def write_site_json(events=None, attributions=None, out: Path | None = None) -> 
     def ent_id(a: dict | None) -> int:
         if a is None:
             return -1
-        name = a.get("entity") or f"{a['source_class']} (entity pending)"
+        pending = {"ofac_sdn": "OFAC sanctions list (names pending)"}
+        name = a.get("entity") or pending.get(a["source_class"], f"{a['source_class']} (entity pending)")
         if name not in entity_index:
             entity_index[name] = len(entities)
             entities.append({"name": name, "source": a["source_class"], "program": a.get("program", "")})
         return entity_index[name]
 
     rows = sorted(events, key=lambda e: (e["block_time"], int(e["block_number"]), int(e["log_index"])))
-    t, c, k, a, addr, amt, tx, li, blk, conf, ent, internal = ([] for _ in range(12))
+    t, c, k, a, addr, amt, tx, li, blk, conf, ent, internal, evid = ([] for _ in range(13))
+    from .receipts import Receipts
+
+    receipt_rows = Receipts().index_rows()
+    receipt_index = {r["evidence_id"]: i for i, r in enumerate(receipt_rows)}
+    evidence = [{"id": r["evidence_id"], "kind": r["kind"], "locator": r["locator"], "sha256": r["sha256"], "fetched_at": r["fetched_at"], "bytes": int(r["bytes"] or 0)} for r in receipt_rows]
     from datetime import datetime as _dt
 
     for e in rows:
@@ -278,6 +284,7 @@ def write_site_json(events=None, attributions=None, out: Path | None = None) -> 
         conf.append(CONF_ORDER[b["confidence"]] if b else 0)
         ent.append(ent_id(b))
         internal.append(1 if e.get("issuer_internal") == "true" else 0)
+        evid.append(receipt_index.get(e.get("evidence_id", ""), -1))
     doc = {
         "v": 1,
         "n": len(rows),
@@ -286,7 +293,7 @@ def write_site_json(events=None, attributions=None, out: Path | None = None) -> 
         "actions": actions,
         "entities": entities,
         "t": t, "c": c, "k": k, "a": a, "addr": addr, "amt": amt, "tx": tx, "li": li, "blk": blk,
-        "conf": conf, "ent": ent, "internal": internal,
+        "conf": conf, "ent": ent, "internal": internal, "evid": evid, "evidence": evidence,
     }
     out = out or (paths.data_dir() / "site.json")
     out.write_text(json.dumps(doc, separators=(",", ":")) + "\n", encoding="utf-8")

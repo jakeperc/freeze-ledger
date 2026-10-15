@@ -1,0 +1,205 @@
+@import "tailwindcss";
+@import "@fontsource/ibm-plex-sans-condensed/500.css";
+@import "@fontsource/ibm-plex-sans-condensed/600.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+/* ------------------------------------------------------------------ tokens
+   A registry, not a dashboard. Dark like the rest of jakepercy.com, but the
+   meaning-bearing colors are the states of a balance: frost (frozen), sage
+   (released), ember (destroyed), amber (has a public record). Chain hues are
+   the ones the rest of the site uses. No glows, no gradients, no cards. */
+@theme {
+  --color-ink: #0d0d1a;
+  --color-ink-2: #12122a;
+  --color-rule: #262643;
+  --color-rule-2: #3a3a5e;
+  --color-paper: #ececf3;
+  --color-paper-2: #a9a9c4;
+  --color-paper-3: #6f6f91;
+  --color-frost: #a9d6ff;
+  --color-frost-2: #5aa9e6;
+  --color-sage: #9fd3b4;
+  --color-ember: #ff7a59;
+  --color-amber: #ffcf70;
+  --color-eth: #8ea2ff;
+  --color-base: #4f8cff;
+  --color-tron: #ff6b6b;
+  --color-sol: #8ee3c8;
+
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+
+@layer base {
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-frost);
+  color: var(--color-ink);
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-rule-2);
+  text-underline-offset: 3px;
+}
+a:hover {
+  text-decoration-color: var(--color-frost);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-frost);
+  outline-offset: 2px;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+}
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* a hairline rule is the only structural device */
+.rule {
+  border-top: 1px solid var(--color-rule);
+}
+
+/* the scene canvas sits behind the chapters */
+.scene-pin {
+  position: sticky;
+  top: 0;
+  height: 56vh;
+  height: 56dvh;
+}
+@media (min-width: 768px) {
+  .scene-pin {
+    height: 100vh;
+    height: 100dvh;
+  }
+}
+
+/* keyboard hint chip */
+kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border: 1px solid var(--color-rule-2);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--color-paper-2);
+}
+
+/* inputs */
+input,
+textarea,
+select {
+  background: transparent;
+  color: var(--color-paper);
+  border: 1px solid var(--color-rule-2);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: inherit;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-paper-3);
+}
+input:focus,
+textarea:focus {
+  border-color: var(--color-frost-2);
+  outline: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 1px solid var(--color-rule-2);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+button:hover {
+  border-color: var(--color-paper-3);
+}
+button[aria-pressed="true"],
+button.primary {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border-color: var(--color-paper);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--color-paper-3);
+  font-size: 12px;
+  padding: 6px 10px 6px 0;
+  border-bottom: 1px solid var(--color-rule-2);
+  white-space: nowrap;
+}
+td {
+  padding: 7px 10px 7px 0;
+  border-bottom: 1px solid var(--color-rule);
+  vertical-align: top;
+}
+tr:hover td {
+  background: rgba(169, 214, 255, 0.04);
+}
+
+/* state words */
+.state-freeze { color: var(--color-frost); }
+.state-unfreeze { color: var(--color-sage); }
+.state-destroy { color: var(--color-ember); }
+.record { color: var(--color-amber); }
+
+/* thin scrollbars inside panels */
+.panel::-webkit-scrollbar { width: 8px; }
+.panel::-webkit-scrollbar-thumb { background: var(--color-rule-2); border-radius: 4px; }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
