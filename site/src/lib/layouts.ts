@@ -39,7 +39,8 @@ export function laneOf(site: SiteJson, i: number) {
 
 export interface LayoutResult {
   positions: Float32Array; // xyz per event
-  labels: { text: string; x: number; y: number; sub?: string }[];
+  /** `weight` ranks labels when they collide on screen (higher is kept) */
+  labels: { text: string; x: number; y: number; sub?: string; weight?: number }[];
   /** time scale used by the timeline/ring layouts, for axis ticks */
   tMin: number;
   tMax: number;
@@ -81,7 +82,7 @@ function countLane(site: SiteJson, li: number) {
  *  large cluster for every frozen address with no record. Each address is
  *  packed once; its events share the address's spot with a small spread so
  *  the cluster sizes read as *addresses*, which is what attribution counts. */
-export function entitiesLayout(site: SiteJson, narrow = false): LayoutResult {
+export function entitiesLayout(site: SiteJson, textRight: number | null = null): LayoutResult {
   const n = site.n;
   const pos = new Float32Array(n * 3);
   // first index per (chain, address)
@@ -105,12 +106,14 @@ export function entitiesLayout(site: SiteJson, narrow = false): LayoutResult {
     .sort((a, b) => (a[0] < 0 ? 1 : b[0] < 0 ? -1 : b[1].size - a[1].size))
     .map(([ent, m]) => ({ name: ent === -1 ? "No public record found" : ent === RELEASED_ONLY ? "Released; freeze predates coverage" : site.entities[ent].name, ent, children: [...m.entries()].map(([k, idx]) => ({ name: k, idx, value: 1 })) }));
   const root = hierarchy<any>({ name: "root", children }).sum((d) => d.value ?? 0);
-  const W = narrow ? SCENE_W - 2 : SCENE_W - 8, H = SCENE_H - 0.6, OX = narrow ? 0 : 3.2; // packed to the right of the text column on wide screens
+  // packed to the right of the text column when it floats over the field
+  const [x0, x1] = fieldSpan(textRight);
+  const W = x1 - x0, H = SCENE_H - 0.6, OX = (x0 + x1) / 2;
   const packed = pack<any>().size([W, H]).padding((d) => (d.depth === 0 ? 0.6 : 0.012))(root);
   const labels: LayoutResult["labels"] = [];
   for (const g of packed.children ?? []) {
     const addrs = g.children?.length ?? 0;
-    labels.push({ text: g.data.name, x: g.x - W / 2 + OX, y: g.y - H / 2 + g.r + 0.35, sub: `${addrs.toLocaleString()} address${addrs === 1 ? "" : "es"}` });
+    labels.push({ text: g.data.name, x: g.x - W / 2 + OX, y: g.y - H / 2 + g.r + 0.35, sub: `${addrs.toLocaleString()} address${addrs === 1 ? "" : "es"}`, weight: addrs });
     for (const leaf of g.children ?? []) {
       const idx: number[] = leaf.data.idx;
       idx.forEach((i, j) => {
@@ -127,14 +130,15 @@ export function entitiesLayout(site: SiteJson, narrow = false): LayoutResult {
 
 /** Rings: one ring per lane, angle = time, so each chain's whole history is
  *  a clock face and the busiest rail is obvious at a glance. */
-export function chainsLayout(site: SiteJson, narrow = false): LayoutResult {
+export function chainsLayout(site: SiteJson, textRight: number | null = null): LayoutResult {
   const n = site.n;
   const pos = new Float32Array(n * 3);
   const tMin = site.t[0], tMax = site.t[n - 1];
   const ang = scaleLinear().domain([tMin, tMax]).range([Math.PI * 0.5, Math.PI * 0.5 - Math.PI * 1.92]);
   const rings = LANES.length;
-  const CX = narrow ? 0 : 3.6; // the text column sits to the left on wide screens
-  const rMax = SCENE_H / 2 - 0.2, rMin = 1.3;
+  const [x0, x1] = fieldSpan(textRight); // the text column may sit to the left
+  const CX = (x0 + x1) / 2;
+  const rMax = Math.min(SCENE_H / 2 - 0.2, (x1 - x0) / 2), rMin = rMax * 0.25;
   const rOf = (l: number) => rMax - (l * (rMax - rMin)) / (rings - 1);
   const band = ((rMax - rMin) / (rings - 1)) * 0.5;
   for (let i = 0; i < n; i++) {
@@ -145,13 +149,24 @@ export function chainsLayout(site: SiteJson, narrow = false): LayoutResult {
     pos[i * 3 + 1] = Math.sin(a) * r;
     pos[i * 3 + 2] = (hash(i, 7) - 0.5) * 0.6;
   }
-  const la = -Math.PI * 0.22;
-  const labels = LANES.map((l, li) => ({ text: l.label, x: CX + Math.cos(la) * rOf(li) + 0.15, y: Math.sin(la) * rOf(li) - 0.05, sub: undefined }));
+  // down the 6 o'clock radius, so the labels stack a full ring apart
+  const labels = LANES.map((l, li) => ({ text: l.label, x: CX + 0.15, y: -rOf(li) + 0.05, sub: undefined }));
   return { positions: pos, labels, tMin, tMax };
 }
 
-export function computeLayouts(site: SiteJson, narrow = false) {
-  return { timeline: timelineLayout(site), entities: entitiesLayout(site, narrow), chains: chainsLayout(site, narrow) };
+/** Horizontal span, in scene units, left for a layout that should not sit
+ *  under the chapter text: right of `textRight` when the text floats over the
+ *  field, the whole width otherwise. */
+function fieldSpan(textRight: number | null): [number, number] {
+  const x1 = SCENE_W / 2 - 0.3;
+  if (textRight === null) return [-x1, x1];
+  return [Math.min(Math.max(textRight + 0.3, -x1), x1 - 5), x1];
+}
+
+/** `textRight`: scene x of the chapter text column's right edge, or null when
+ *  the text does not float over the field. */
+export function computeLayouts(site: SiteJson, textRight: number | null = null) {
+  return { timeline: timelineLayout(site), entities: entitiesLayout(site, textRight), chains: chainsLayout(site, textRight) };
 }
 
 /** per-event colors for each color mode, as flat rgb */

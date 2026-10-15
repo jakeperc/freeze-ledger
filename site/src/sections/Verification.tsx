@@ -16,8 +16,8 @@ export function Verification({ ledger }: { ledger: Ledger }) {
         <p className="mt-2 max-w-[48rem] text-paper-2">
           Nothing is committed until <a href="https://github.com/jakeperc/freeze-ledger/blob/main/verify.py" target="_blank" rel="noopener">verify.py</a> re-derives it: the schema, every receipt's hash, the published views against a fresh recomputation, a seeded sample of rows re-fetched from a second public node, and the OFAC extract against an independent one. This is its last report.
         </p>
-        <div className="mt-8 grid gap-10 md:grid-cols-[1.2fr_1fr]">
-          <div className="rule pt-4">
+        <div className="mt-8 grid gap-10 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          <div className="rule min-w-0 pt-4">
             {!r ? (
               <p className="text-paper-3">No report file was published with this data.</p>
             ) : (
@@ -28,10 +28,10 @@ export function Verification({ ledger }: { ledger: Ledger }) {
                 </div>
                 <ul className="mt-4 space-y-2">
                   {r.checks.map((c, i) => (
-                    <li key={i} className="grid grid-cols-[4.5rem_11rem_1fr] gap-3 text-[13px]">
+                    <li key={i} className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-0.5 text-[13px] sm:grid-cols-[4.5rem_11rem_minmax(0,1fr)]">
                       <span className={`mono ${STATUS[c.status] ?? ""}`}>{c.status}</span>
                       <span className="mono text-paper-2">{c.check}</span>
-                      <span className="text-paper-2">{c.detail}</span>
+                      <span className="col-start-2 break-words text-paper-2 sm:col-start-auto">{c.detail}</span>
                     </li>
                   ))}
                 </ul>
@@ -39,7 +39,7 @@ export function Verification({ ledger }: { ledger: Ledger }) {
               </>
             )}
           </div>
-          <div className="rule pt-4">
+          <div className="rule min-w-0 pt-4">
             <div className="text-[13px] text-paper-3">Files this page is reading</div>
             <ul className="mt-2 space-y-2">
               {Object.entries(files).map(([name, meta]) => (

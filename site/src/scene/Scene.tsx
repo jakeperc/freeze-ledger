@@ -3,12 +3,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import type { SiteJson } from "../lib/data";
 import { SCENE_H, SCENE_W, type LayoutResult } from "../lib/layouts";
-import { useStore } from "../lib/store";
+import { isWide, TEXT_COLUMN_PX, useStore } from "../lib/store";
 import { Field, type FieldHandle } from "./Field";
 import { Tooltip } from "./Tooltip";
 
 interface Projected {
-  labels: { text: string; sub?: string; x: number; y: number }[];
+  labels: { text: string; sub?: string; weight?: number; x: number; y: number }[];
   ticks: { text: string; x: number; y: number }[];
   hover: { x: number; y: number } | null;
 }
@@ -33,7 +33,7 @@ function Projector({ layouts, onProject }: { layouts: Record<string, LayoutResul
     frame.current++;
     if (frame.current % 4 !== 0) return;
     const L = layouts[layout];
-    const labels = L.labels.map((l) => ({ text: l.text, sub: l.sub, ...project(l.x, l.y, 0) }));
+    const labels = L.labels.map((l) => ({ text: l.text, sub: l.sub, weight: l.weight, ...project(l.x, l.y, 0) }));
     const ticks: Projected["ticks"] = [];
     if (layout === "timeline") {
       const y0 = new Date(L.tMin * 1000).getUTCFullYear(), y1 = new Date(L.tMax * 1000).getUTCFullYear();
@@ -95,12 +95,52 @@ function Rig({ children }: { children: React.ReactNode }) {
   return <group ref={group}>{children}</group>;
 }
 
+type Box = { x: number; y: number; w: number; h: number };
+const overlaps = (a: Box, b: Box, pad = 2) =>
+  a.x < b.x + b.w + pad && b.x < a.x + a.w + pad && a.y < b.y + b.h + pad && b.y < a.y + a.h + pad;
+/** rough rendered width: Plex Sans ~0.56em, Plex Mono 0.6em, CJK a full em */
+function textWidth(s: string, px: number, mono: boolean) {
+  let w = 0;
+  for (const ch of s) w += ch.charCodeAt(0) > 0x2e7f ? px : px * (mono ? 0.6 : 0.56);
+  return w;
+}
+
+/** Keep the labels that fit: heaviest first, none on top of another, none
+ *  off the field or over the masthead, the controls or the floating text. */
+function placeLabels(labels: Projected["labels"], layout: string, container: HTMLElement | null) {
+  if (!container) return labels;
+  const W = container.clientWidth, H = container.clientHeight;
+  const origin = container.getBoundingClientRect();
+  const reserved: Box[] = [];
+  const pin = container.closest(".scene-pin");
+  pin?.querySelectorAll("header, [data-controls]").forEach((el) => {
+    const r = el.getBoundingClientRect();
+    reserved.push({ x: r.left - origin.left, y: r.top - origin.top, w: r.width, h: r.height });
+  });
+  if (isWide()) reserved.push({ x: 0, y: 0, w: TEXT_COLUMN_PX, h: H });
+  const order = labels.map((l, i) => ({ l, i })).sort((a, b) => (b.l.weight ?? Infinity) - (a.l.weight ?? Infinity) || a.i - b.i);
+  const kept: Box[] = [];
+  const out: Projected["labels"] = [];
+  for (const { l } of order) {
+    const w = textWidth(l.text, 12, false) + 8 + (l.sub ? textWidth(l.sub, 10.5, true) + 8 : 0), h = 23;
+    const box: Box =
+      layout === "entities" ? { x: l.x - w / 2, y: l.y, w, h } : layout === "timeline" ? { x: l.x - w, y: l.y - h, w, h } : { x: l.x, y: l.y - h, w, h };
+    if (box.x < 0 || box.y < 0 || box.x + box.w > W || box.y + box.h > H) continue;
+    if (reserved.some((r) => overlaps(box, r, 0)) || kept.some((k) => overlaps(box, k))) continue;
+    kept.push(box);
+    out.push(l);
+  }
+  return out;
+}
+
 export function Scene({ site }: { site: SiteJson }) {
   const [layouts, setLayouts] = useState<Record<string, LayoutResult> | null>(null);
   const [proj, setProj] = useState<Projected>({ labels: [], ticks: [], hover: null });
   const onReady = useCallback((h: FieldHandle) => setLayouts(h.layouts), []);
   const hovered = useStore((s) => s.hovered);
   const layout = useStore((s) => s.layout);
+  const overlay = useRef<HTMLDivElement>(null);
+  const labels = placeLabels(proj.labels, layout, overlay.current);
 
   return (
     <div className="absolute inset-0" aria-hidden="false">
@@ -119,10 +159,10 @@ export function Scene({ site }: { site: SiteJson }) {
       </Canvas>
 
       {/* labels (hidden on portrait screens, where the field is turned and small) */}
-      <div className="pointer-events-none absolute inset-0 hidden select-none md:block">
-        {proj.labels.map((l, i) => (
+      <div ref={overlay} className="pointer-events-none absolute inset-0 hidden select-none md:block">
+        {labels.map((l) => (
           <div
-            key={layout + i}
+            key={layout + l.text}
             className="absolute whitespace-nowrap"
             style={{ left: l.x, top: l.y, transform: layout === "entities" ? "translate(-50%, 0)" : layout === "timeline" ? "translate(-100%, -100%)" : "translate(0, -100%)", textAlign: layout === "timeline" ? "right" : layout === "entities" ? "center" : "left" }}
           >

@@ -8,7 +8,7 @@ import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildChapters } from "../lib/copy";
 import type { Ledger } from "../lib/data";
-import { useStore, type ColorMode, type Layout } from "../lib/store";
+import { isWide, useStore, type ColorMode, type Layout } from "../lib/store";
 import { Scene } from "../scene/Scene";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -61,7 +61,7 @@ export function Hero({ ledger }: { ledger: Ledger }) {
     const el = root.current!;
     const blocks = el.querySelectorAll<HTMLElement>("[data-chapter]");
     const triggers: ScrollTrigger[] = [];
-    const narrow = innerWidth < 768;
+    const narrow = !isWide();
     blocks.forEach((b, i) => {
       triggers.push(
         ScrollTrigger.create({
@@ -86,7 +86,7 @@ export function Hero({ ledger }: { ledger: Ledger }) {
 
   return (
     <section ref={root} className="relative" aria-label="The field">
-      <div className="scene-pin z-20 overflow-hidden bg-ink md:z-0">
+      <div className="scene-pin z-20 overflow-hidden bg-ink wide:z-0">
         <Scene site={ledger.site} />
 
         {/* masthead */}
@@ -108,7 +108,7 @@ export function Hero({ ledger }: { ledger: Ledger }) {
         </header>
 
         {/* controls */}
-        <div className="absolute bottom-5 left-5 z-10 flex flex-wrap items-end gap-x-6 gap-y-3 md:left-8 md:bottom-7">
+        <div data-controls className="absolute bottom-5 left-5 z-10 flex flex-wrap items-end gap-x-6 gap-y-3 md:left-8 md:bottom-7">
           <div>
             <div className="mb-1.5 text-[11px] text-paper-3">Arrange</div>
             <div className="flex gap-1.5">
@@ -134,10 +134,12 @@ export function Hero({ ledger }: { ledger: Ledger }) {
         </div>
       </div>
 
-      {/* chapters scroll over the pinned scene on wide screens, under it on phones */}
-      <div className="relative z-10 md:-mt-[100vh]">
+      {/* chapters scroll over the pinned scene on wide landscape screens, under it
+          everywhere else; over the scene they must not take the pointer from the
+          menu, the controls or the points */}
+      <div className="relative z-10 wide:pointer-events-none wide:-mt-[100vh]">
         {chapters.map((c, i) => (
-          <div key={c.id} data-chapter={c.id} className="flex min-h-[60vh] items-center px-5 py-10 md:min-h-[100vh] md:py-0 md:px-8">
+          <div key={c.id} data-chapter={c.id} className="flex min-h-[60vh] items-center px-5 py-10 md:px-8 wide:min-h-[100vh] wide:py-0">
             <div className={`max-w-[34rem] transition-opacity duration-500 ${chapter === i ? "opacity-100" : "opacity-35"}`}>
               <div className="display text-[clamp(44px,9vw,124px)] text-paper tnum">
                 <Figure text={c.figure} active={chapter === i} />
