@@ -3,6 +3,7 @@ rules, and the join that writes attributions."""
 
 import io
 
+from freeze_ledger import registry
 from freeze_ledger.attribution import grade as grading
 from freeze_ledger.attribution.join import build_attributions
 from freeze_ledger.attribution.sdn import parse_sdn_advanced
@@ -131,3 +132,22 @@ def test_join_writes_graded_attributions_and_supersedes_on_change(stores):
     old = next(r for r in rows if r["chain"] == "tron" and r["confidence"] == "moderate")
     new = next(r for r in rows if r["chain"] == "tron" and r["confidence"] == "high")
     assert old["superseded_by"] == new["attribution_id"] and not new["superseded_by"]
+
+
+def test_join_supersedes_rows_judged_from_the_independent_extract(stores):
+    cps, store, attr, receipts = stores
+    events = [{"event_id": "ethereum:0xaa:1", "chain": "ethereum", "token": "USDT", "action": "freeze", "address": ETH_ADDR,
+               "block_time": "2023-05-01T00:00:00Z", "block_number": "1", "log_index": "1", "issuer_internal": ""}]
+    placeholder = {"attribution_id": "at_placeholder", "address": ETH_ADDR, "chain": "ethereum", "source_class": "ofac_sdn",
+                   "entity": "", "program": "", "record_date": "", "confidence": "high",
+                   "basis": "exact address match in a primary record; entity and listing date pending the full SDN XML parse",
+                   "evidence_url": registry.B10C_LISTS["ETH"], "judged_at": "2026-01-01", "superseded_by": ""}
+    # the same address can sit on more than one independent list
+    attr.append([placeholder, {**placeholder, "attribution_id": "at_placeholder_usdt", "evidence_url": registry.B10C_LISTS["USDT"]}])
+    sdn_rows = parse_sdn_advanced(io.BytesIO(SDN_FIXTURE.encode()))
+    summary = build_attributions(events=events, sdn_rows=sdn_rows, manual_rows=[], use_federal_register=False, store=attr, log=quiet)
+    rows = {r["attribution_id"]: r for r in attr.rows()}
+    graded = next(r for r in rows.values() if r["evidence_url"].endswith("id=36618"))
+    assert summary["attributions_superseded"] == 2
+    assert rows["at_placeholder"]["superseded_by"] == graded["attribution_id"]
+    assert rows["at_placeholder_usdt"]["superseded_by"] == graded["attribution_id"] and not graded["superseded_by"]

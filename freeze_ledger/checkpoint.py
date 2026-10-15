@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -27,4 +28,13 @@ class Checkpoints:
     def save(self) -> None:
         tmp = self.path.with_suffix(".json.tmp")
         tmp.write_text(json.dumps(self.data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        tmp.replace(self.path)
+        # On Windows a reader holding the file (a dev server watching data/,
+        # antivirus) makes the rename fail briefly; retry before giving up.
+        for attempt in range(10):
+            try:
+                tmp.replace(self.path)
+                return
+            except PermissionError:
+                if attempt == 9:
+                    raise
+                time.sleep(0.2 * (attempt + 1))

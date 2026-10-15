@@ -22,7 +22,7 @@ import hashlib
 from collections import defaultdict
 from datetime import datetime, timezone
 
-from .. import paths
+from .. import paths, registry
 from ..store import ATTRIBUTION_COLUMNS, CsvTable, attribution_store, event_store
 from . import federal_register, grade as grading
 from .sdn import read_sdn_csv
@@ -172,6 +172,15 @@ def build_attributions(
             continue
         by_key[(r["address"], r["chain"], r["source_class"], r["evidence_url"])] = r
 
+    # Rows judged from the independent extract (`sdn --independent`) cite a
+    # list URL rather than the SDN entry, so their key never matches the
+    # graded row that replaces them; supersede them by address instead.
+    independent_urls = set(registry.B10C_LISTS.values())
+    placeholders: dict[tuple, list[dict]] = defaultdict(list)
+    for r in existing:
+        if not r.get("superseded_by") and r["evidence_url"] in independent_urls:
+            placeholders[(r["address"], r["chain"], r["source_class"])].append(r)
+
     new_rows: list[dict] = []
     superseded: dict[str, str] = {}
     today = _today()
@@ -185,6 +194,9 @@ def build_attributions(
         new_rows.append(row)
         if prev:
             superseded[prev["attribution_id"]] = aid
+        elif c["evidence_url"] not in independent_urls:
+            for ph in placeholders.pop((c["address"], c["chain"], c["source_class"]), []):
+                superseded[ph["attribution_id"]] = aid
 
     if superseded:
         rewritten = []
