@@ -92,7 +92,8 @@ def build_attributions(
         if not chains:
             continue
         sdn_hits += 1
-        evidence_url = SANCTIONS_SEARCH.format(fixed_ref=row["fixed_ref"]) if row["fixed_ref"] else ""
+        evidence_url = SANCTIONS_SEARCH.format(fixed_ref=row["fixed_ref"]) if row["fixed_ref"] else row.get("source_url", "")
+        pending = "" if (row["entity"] or row["listed_date"]) else "; entity and listing date pending the full SDN XML parse (independent nightly extract)"
         notice = None
         if use_federal_register and row["entity"] and row["listed_date"]:
             notice = federal_register.find_notice(row["entity"], row["listed_date"], log=log)
@@ -112,7 +113,7 @@ def build_attributions(
                     "program": row["program"],
                     "record_date": row["listed_date"],
                     "confidence": g.confidence,
-                    "basis": g.basis + f" (SDN asset code {row['asset']})",
+                    "basis": g.basis + f" (SDN asset code {row['asset']})" + pending,
                     "evidence_url": evidence_url,
                 }
             )

@@ -4,7 +4,7 @@ An open, reproducible dataset of every address Tether and Circle have frozen or 
 
 It is a dataset first, with a page on top. Every number is derived from a chain response whose raw bytes are hashed and kept, and the published figures are re-derived by a public verification suite before anything is committed.
 
-> **Status: v0.1, pre-data.** The indexer, attribution layer, verification suite, nightly workflow and page are complete and tested against fixtures. The first real run has not happened yet; the headline counts below are filled in by the first run. See *Status* at the bottom.
+> **Status: v0.1, first data.** Ethereum and Base are indexed (see *Status* below for exact coverage); Tron and Solana are not yet run. Every published figure passes `verify.py`.
 
 ## What you get
 
@@ -24,7 +24,7 @@ Schema for all three tables is in [METHODOLOGY.md](METHODOLOGY.md#schema).
 Standard library only. No API keys are required for Ethereum, Base or Solana; a free TronGrid key makes Tron faster.
 
 ```bash
-git clone https://github.com/jakepercy/freeze-ledger
+git clone https://github.com/jakeperc/freeze-ledger
 cd freeze-ledger
 python -m pytest -q                       # the suite runs against fixtures, no network
 
@@ -37,6 +37,12 @@ python -m freeze_ledger sdn               # download + extract the SDN digital-c
 python -m freeze_ledger attribute         # join and grade
 python -m freeze_ledger export            # write data/latest.json
 python verify.py                          # re-derive a sample from a second endpoint; exits 1 on any mismatch
+```
+
+The committed data was bootstrapped from Etherscan `getLogs` pages (see CHANGELOG), so Ethereum USDT freezes before block 18,900,000 are not in yet. To fill that gap from a public RPC, walk from the deployment block up to the bootstrap checkpoint (resumable; re-walking indexed ranges adds nothing):
+
+```bash
+python -m freeze_ledger backfill --chain ethereum --to-block 18900000
 ```
 
 Day to day, one command indexes forward from the committed checkpoints:
@@ -114,13 +120,16 @@ address,chain,source_class,entity,program,record_date,evidence_url,match_basis,a
 
 ## Status
 
-<!-- filled by the first real run; keep these three numbers honest -->
-- Events indexed: **not yet run**
-- Date range: **—**
-- Share of frozen addresses with a High attribution: **—**
+As of 2026-10-15 (first bootstrap, Ethereum + Base via Etherscan `getLogs` pages filed as receipts; Tron and Solana not yet run):
+
+- Events indexed: **5,333** public (43 issuer-internal rows kept and flagged)
+- Addresses frozen now: **3,591** (Ethereum USDT 2,435, Ethereum USDC 653, Base USDC 503)
+- USDT destroyed after a freeze (Ethereum, all-time): **$818,478,019**
+- Coverage: Ethereum USDC freezes 2020-06-16 → 2026-10-12 (complete); Ethereum USDT destroys and releases 2017-11-28 → 2026-10-09 (complete); **Ethereum USDT freezes 2024-01-02 → 2026-10-14 only** (earlier USDT freezes arrive with the RPC backfill); Base USDC 2023-08-18 → 2026-10-08 (complete)
+- Attribution: **248** frozen addresses with a High attribution (exact match in the OFAC SDN digital-currency list via the independent nightly extract; entity names and listing dates pending the full `sdn_advanced.xml` run), **3,616** (93.6%) with no public record found yet
 
 ## License and citation
 
-Code: MIT. Data (`data/`, `evidence/`): CC BY 4.0. Cite as *Percy, J. Freeze Ledger, release vYYYY.MM.DD, https://github.com/jakepercy/freeze-ledger*.
+Code: MIT. Data (`data/`, `evidence/`): CC BY 4.0. Cite as *Percy, J. Freeze Ledger, release vYYYY.MM.DD, https://github.com/jakeperc/freeze-ledger*.
 
 Attributions are the author's assessment of public records, not the issuer's stated reason for any freeze. "No public record found" means exactly that.

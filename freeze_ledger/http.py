@@ -14,7 +14,7 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-USER_AGENT = "freeze-ledger/0.1 (+https://github.com/jakepercy/freeze-ledger)"
+USER_AGENT = "freeze-ledger/0.1 (+https://github.com/jakeperc/freeze-ledger)"
 
 
 class HttpError(Exception):

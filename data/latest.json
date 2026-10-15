@@ -1,22 +1,22 @@
 {
   "attribution_coverage": {
-    "frozen_addresses": 0,
-    "high": 0,
+    "frozen_addresses": 3864,
+    "high": 248,
     "low": 0,
     "moderate": 0,
-    "unattributed": 0,
-    "unattributed_share": null
+    "unattributed": 3616,
+    "unattributed_share": 0.9358
   },
   "attribution_coverage_by_chain": {
     "base": {
-      "attributed": 0,
-      "frozen_addresses": 0,
-      "unattributed": 0
+      "attributed": 124,
+      "frozen_addresses": 596,
+      "unattributed": 472
     },
     "ethereum": {
-      "attributed": 0,
-      "frozen_addresses": 0,
-      "unattributed": 0
+      "attributed": 124,
+      "frozen_addresses": 3268,
+      "unattributed": 3144
     },
     "solana": {
       "attributed": 0,
@@ -29,53 +29,588 @@
       "unattributed": 0
     }
   },
-  "by_chain_action": {},
-  "by_token_action": {},
-  "checkpoints": {},
+  "by_chain_action": {
+    "base": {
+      "freeze": 600,
+      "unfreeze": 93
+    },
+    "ethereum": {
+      "destroy": 1245,
+      "freeze": 2822,
+      "unfreeze": 573
+    }
+  },
+  "by_issuer": {
+    "circle": {
+      "attributed_addresses": 248,
+      "currently_frozen": 1156,
+      "destroyed_total": "0.000000",
+      "destroys": 0,
+      "events": 1822,
+      "freezes": 1503,
+      "frozen_addresses": 1445,
+      "released_addresses": 289,
+      "unfreezes": 319
+    },
+    "tether": {
+      "attributed_addresses": 64,
+      "currently_frozen": 2435,
+      "destroyed_total": "818478019.343261",
+      "destroys": 1245,
+      "events": 3511,
+      "freezes": 1919,
+      "frozen_addresses": 2576,
+      "released_addresses": 346,
+      "unfreezes": 347
+    }
+  },
+  "by_token_action": {
+    "USDC": {
+      "freeze": 1503,
+      "unfreeze": 319
+    },
+    "USDT": {
+      "destroy": 1245,
+      "freeze": 1919,
+      "unfreeze": 347
+    }
+  },
+  "checkpoints": {
+    "base": {
+      "bootstrap": {
+        "source": "etherscan_getlogs_pages",
+        "through_block": 52355491
+      },
+      "last_block": 52355491
+    },
+    "ethereum": {
+      "bootstrap": {
+        "source": "etherscan_getlogs_pages",
+        "through_block": 26193169
+      },
+      "last_block": 26193169
+    }
+  },
   "coverage_span": {
     "base": {
-      "events": 0,
-      "first": null,
-      "last": null
+      "detail": {
+        "USDC:freeze": {
+          "events": 600,
+          "first": "2023-08-18T19:16:31Z",
+          "last": "2026-10-08T22:58:49Z"
+        },
+        "USDC:unfreeze": {
+          "events": 93,
+          "first": "2023-08-23T21:21:21Z",
+          "last": "2025-09-12T14:35:03Z"
+        }
+      },
+      "events": 693,
+      "first": "2023-08-18T19:16:31Z",
+      "last": "2026-10-08T22:58:49Z"
     },
     "ethereum": {
-      "events": 0,
-      "first": null,
-      "last": null
+      "detail": {
+        "USDC:freeze": {
+          "events": 903,
+          "first": "2020-06-16T04:39:08Z",
+          "last": "2026-10-12T17:36:35Z"
+        },
+        "USDC:unfreeze": {
+          "events": 226,
+          "first": "2021-12-23T23:35:00Z",
+          "last": "2026-09-23T08:01:11Z"
+        },
+        "USDT:destroy": {
+          "events": 1288,
+          "first": "2017-11-28T16:52:01Z",
+          "last": "2026-10-09T14:57:35Z"
+        },
+        "USDT:freeze": {
+          "events": 1919,
+          "first": "2024-01-02T17:29:35Z",
+          "last": "2026-10-14T20:35:35Z"
+        },
+        "USDT:unfreeze": {
+          "events": 347,
+          "first": "2017-11-28T16:59:39Z",
+          "last": "2026-08-20T16:41:35Z"
+        }
+      },
+      "events": 4683,
+      "first": "2017-11-28T16:52:01Z",
+      "last": "2026-10-14T20:35:35Z"
     },
     "solana": {
+      "detail": {},
       "events": 0,
       "first": null,
       "last": null
     },
     "tron": {
+      "detail": {},
       "events": 0,
       "first": null,
       "last": null
     }
   },
-  "currently_frozen": {},
-  "currently_frozen_total": 0,
-  "destroyed_usdt_by_chain": {},
-  "events_issuer_internal": 0,
-  "events_public": 0,
-  "events_total": 0,
-  "files": {
-    "attributions.csv": {
-      "rows": 0,
-      "sha256": ""
+  "currently_frozen": {
+    "base": {
+      "USDC": 503
     },
-    "evidence.csv": {
-      "sha256": ""
-    },
-    "freeze_events.csv": {
-      "rows": 0,
-      "sha256": ""
+    "ethereum": {
+      "USDC": 653,
+      "USDT": 2435
     }
   },
-  "generated_at": "2026-10-14T02:58:08Z",
+  "currently_frozen_total": 3591,
+  "destroyed_usdt_by_chain": {
+    "ethereum": "818478019.343261"
+  },
+  "events_issuer_internal": 43,
+  "events_public": 5333,
+  "events_total": 5376,
+  "files": {
+    "attributions.csv": {
+      "rows": 256,
+      "sha256": "5ae52562c288735fb1a1ed005a08d6b9022f35cc8572e7bdc7f68ea5bd9462e2"
+    },
+    "evidence.csv": {
+      "sha256": "fc3e5933f654a579f87a065f5761ee94f84e9205d8541e169ce8b5b476eb1245"
+    },
+    "freeze_events.csv": {
+      "rows": 5376,
+      "sha256": "bce48a8410049db43cb80be9aeb6e839132ce5fe61483237d2278876f7a4b48c"
+    }
+  },
+  "freeze_to_destroy_days": {
+    "max": 749.0,
+    "median": 145.7,
+    "n": 531,
+    "p25": 43.9,
+    "p75": 255.2
+  },
+  "freeze_to_release_days": {
+    "max": 956.4,
+    "median": 134.5,
+    "n": 452,
+    "p25": 50.2,
+    "p75": 581.2
+  },
+  "generated_at": "2026-10-15T12:48:51Z",
   "last_run": {},
-  "monthly_freezes": [],
+  "monthly_freezes": [
+    {
+      "base": 0,
+      "ethereum": 1,
+      "month": "2020-06",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 7,
+      "month": "2021-04",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 4,
+      "month": "2021-09",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 12,
+      "month": "2021-11",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 1,
+      "month": "2021-12",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 3,
+      "month": "2022-03",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 6,
+      "month": "2022-04",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 4,
+      "month": "2022-05",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 1,
+      "month": "2022-06",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 4,
+      "month": "2022-07",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 39,
+      "month": "2022-08",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 5,
+      "month": "2022-09",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 1,
+      "month": "2022-10",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 63,
+      "month": "2022-11",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 1,
+      "month": "2023-01",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 6,
+      "month": "2023-02",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 1,
+      "month": "2023-03",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 1,
+      "month": "2023-04",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 11,
+      "month": "2023-05",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 3,
+      "month": "2023-07",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 150,
+      "ethereum": 12,
+      "month": "2023-08",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 1,
+      "ethereum": 1,
+      "month": "2023-09",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 8,
+      "ethereum": 8,
+      "month": "2023-10",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 16,
+      "month": "2023-11",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 7,
+      "month": "2024-01",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 1,
+      "ethereum": 21,
+      "month": "2024-02",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 9,
+      "ethereum": 100,
+      "month": "2024-03",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 1,
+      "ethereum": 74,
+      "month": "2024-04",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 5,
+      "ethereum": 92,
+      "month": "2024-05",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 108,
+      "month": "2024-06",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 129,
+      "month": "2024-07",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 1,
+      "ethereum": 23,
+      "month": "2024-08",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 3,
+      "ethereum": 53,
+      "month": "2024-09",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 102,
+      "month": "2024-10",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 45,
+      "month": "2024-11",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 7,
+      "ethereum": 55,
+      "month": "2024-12",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 76,
+      "month": "2025-01",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 4,
+      "ethereum": 40,
+      "month": "2025-02",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 5,
+      "ethereum": 69,
+      "month": "2025-03",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 10,
+      "ethereum": 47,
+      "month": "2025-04",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 4,
+      "ethereum": 67,
+      "month": "2025-05",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 30,
+      "month": "2025-06",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 2,
+      "ethereum": 100,
+      "month": "2025-07",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 21,
+      "ethereum": 74,
+      "month": "2025-08",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 9,
+      "ethereum": 65,
+      "month": "2025-09",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 7,
+      "ethereum": 110,
+      "month": "2025-10",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 62,
+      "ethereum": 141,
+      "month": "2025-11",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 1,
+      "ethereum": 53,
+      "month": "2025-12",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 7,
+      "ethereum": 58,
+      "month": "2026-01",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 0,
+      "ethereum": 41,
+      "month": "2026-02",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 21,
+      "ethereum": 242,
+      "month": "2026-03",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 3,
+      "ethereum": 54,
+      "month": "2026-04",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 10,
+      "ethereum": 55,
+      "month": "2026-05",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 2,
+      "ethereum": 58,
+      "month": "2026-06",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 150,
+      "ethereum": 208,
+      "month": "2026-07",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 33,
+      "ethereum": 78,
+      "month": "2026-08",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 59,
+      "ethereum": 105,
+      "month": "2026-09",
+      "solana": 0,
+      "tron": 0
+    },
+    {
+      "base": 4,
+      "ethereum": 31,
+      "month": "2026-10",
+      "solana": 0,
+      "tron": 0
+    }
+  ],
+  "multi_chain_addresses": 576,
+  "multi_chain_pairs": {
+    "base+ethereum": 576
+  },
   "registry": [
     {
       "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
@@ -174,5 +709,10 @@
     }
   ],
   "schema_version": 1,
+  "sdn_screening": {
+    "circle:base": 124,
+    "circle:ethereum": 124,
+    "tether:ethereum": 64
+  },
   "top_programs": []
 }

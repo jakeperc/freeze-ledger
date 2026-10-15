@@ -38,6 +38,7 @@ SDN_COLUMNS = [
     "listed_date",
     "fixed_ref",
     "feature_id",
+    "source_url",
 ]
 
 
@@ -170,6 +171,7 @@ def parse_sdn_advanced(source) -> list[dict]:
                     "listed_date": listed,
                     "fixed_ref": fixed_ref,
                     "feature_id": feature_id,
+                    "source_url": registry.SDN_ADVANCED_XML,
                 }
             )
     rows.sort(key=lambda r: (r["asset"], r["entity"], r["address"]))

@@ -1,1 +1,16 @@
-{}
+{
+  "base": {
+    "bootstrap": {
+      "source": "etherscan_getlogs_pages",
+      "through_block": 52355491
+    },
+    "last_block": 52355491
+  },
+  "ethereum": {
+    "bootstrap": {
+      "source": "etherscan_getlogs_pages",
+      "through_block": 26193169
+    },
+    "last_block": 26193169
+  }
+}

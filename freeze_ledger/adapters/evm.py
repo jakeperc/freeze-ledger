@@ -235,18 +235,26 @@ class EvmAdapter(Adapter):
 
         if from_cursor is not None:
             start = int(from_cursor)
+        elif backfill:
+            # A backfill always walks from the contracts' deployment block (or
+            # its own resumable cursor), whatever the forward checkpoint says,
+            # so a bootstrap that started mid-history can be completed later.
+            resume = checkpoints.get(self.chain, "backfill_cursor")
+            if resume is not None and not checkpoints.get(self.chain, "backfill_done"):
+                start = int(resume) + 1
+                stats.notes.append(f"backfill resumed at block {start}")
+            else:
+                deployments = checkpoints.get(self.chain, "deployment_block", {}) or {}
+                for c in self.contracts:
+                    if c.address.lower() not in deployments:
+                        log(f"[{self.chain}] locating deployment block of {c.token} {c.address} ...")
+                        deployments[c.address.lower()] = self.find_deployment_block(c.address, head)
+                        checkpoints.set(self.chain, "deployment_block", deployments)
+                        log(f"[{self.chain}] {c.token} first has code at block {deployments[c.address.lower()]}")
+                start = min(deployments[c.address.lower()] for c in self.contracts)
+                stats.notes.append(f"backfill from deployment block {start}")
         elif last is not None:
             start = max(0, int(last) - registry.REORG_MARGIN[self.chain] + 1)
-        elif backfill:
-            deployments = checkpoints.get(self.chain, "deployment_block", {}) or {}
-            for c in self.contracts:
-                if c.address.lower() not in deployments:
-                    log(f"[{self.chain}] locating deployment block of {c.token} {c.address} ...")
-                    deployments[c.address.lower()] = self.find_deployment_block(c.address, head)
-                    checkpoints.set(self.chain, "deployment_block", deployments)
-                    log(f"[{self.chain}] {c.token} first has code at block {deployments[c.address.lower()]}")
-            start = min(deployments[c.address.lower()] for c in self.contracts)
-            stats.notes.append(f"backfill from deployment block {start}")
         else:
             start = max(0, safe_head - DEFAULT_LOOKBACK_BLOCKS[self.chain])
             stats.notes.append(f"no checkpoint; default lookback from block {start}")
@@ -292,7 +300,11 @@ class EvmAdapter(Adapter):
                 if margin_lo is not None:
                     seen_in_margin.update(r["event_id"] for r in batch if int(r["block_number"]) <= int(last))
                 log(f"[{self.chain}] {c_from}..{c_to}: {len(batch)} events ({stats.events_new} new so far)")
-            checkpoints.set(self.chain, "last_block", c_to)
+            if backfill:
+                checkpoints.set(self.chain, "backfill_cursor", c_to)
+                if c_to >= end:
+                    checkpoints.set(self.chain, "backfill_done", True)
+            checkpoints.set(self.chain, "last_block", max(c_to, int(last) if last is not None else 0))
             if max_calls is not None and self.rpc.calls - calls_at_start >= max_calls:
                 stats.notes.append(f"stopped at block {c_to} after {max_calls} calls; resume later")
                 log(f"[{self.chain}] call budget reached at block {c_to}")

@@ -108,8 +108,90 @@ def compute_views(events: list[dict], attributions: list[dict], checkpoints: dic
     for c in chains:
         times = [e["block_time"] for e in events if e["chain"] == c]
         span[c] = {"first": min(times) if times else None, "last": max(times) if times else None, "events": len(times)}
+        detail: dict[str, dict] = {}
+        for e in events:
+            if e["chain"] != c:
+                continue
+            k = f"{e['token']}:{e['action']}"
+            d = detail.setdefault(k, {"first": e["block_time"], "last": e["block_time"], "events": 0})
+            d["first"] = min(d["first"], e["block_time"])
+            d["last"] = max(d["last"], e["block_time"])
+            d["events"] += 1
+        span[c]["detail"] = detail
+
+    # --- issuer behaviour --------------------------------------------------------
+    by_issuer: dict[str, dict] = {}
+    for issuer in ("tether", "circle"):
+        ev = [e for e in public if e["issuer"] == issuer]
+        if not ev:
+            continue
+        frozen_addrs = {(e["chain"], e["address"]) for e in ev if e["action"] in ("freeze", "destroy")}
+        released = {(e["chain"], e["address"]) for e in ev if e["action"] == "unfreeze"}
+        token = "USDT" if issuer == "tether" else "USDC"
+        now_frozen = sum(1 for (c, t, a), f in frozen_state.items() if f and t == token)
+        sdn_hits = {k for k in best if k in frozen_addrs}
+        by_issuer[issuer] = {
+            "events": len(ev),
+            "freezes": sum(1 for e in ev if e["action"] == "freeze"),
+            "unfreezes": sum(1 for e in ev if e["action"] == "unfreeze"),
+            "destroys": sum(1 for e in ev if e["action"] == "destroy"),
+            "frozen_addresses": len(frozen_addrs),
+            "released_addresses": len(released),
+            "currently_frozen": now_frozen,
+            "attributed_addresses": len(sdn_hits),
+            "destroyed_total": f"{sum(Decimal(e['amount']) for e in ev if e['action'] == 'destroy' and e.get('amount')):.6f}",
+        }
+
+    # --- cross-chain ----------------------------------------------------------------
+    chains_per_addr: dict[str, set] = defaultdict(set)
+    for (c, a) in frozen_addresses:
+        chains_per_addr[a].add(c)
+    multi = {a: sorted(cs) for a, cs in chains_per_addr.items() if len(cs) > 1}
+    pair_counts: Counter = Counter()
+    for cs in multi.values():
+        pair_counts["+".join(cs)] += 1
+
+    # --- lags ------------------------------------------------------------------------
+    def _days(a: str, b: str) -> float:
+        from datetime import datetime as _dt
+
+        return (_dt.fromisoformat(b.replace("Z", "+00:00")) - _dt.fromisoformat(a.replace("Z", "+00:00"))).total_seconds() / 86400
+
+    first_freeze: dict[tuple, str] = {}
+    for e in sorted(public, key=lambda e: e["block_time"]):
+        k = (e["chain"], e["token"], e["address"])
+        if e["action"] == "freeze" and k not in first_freeze:
+            first_freeze[k] = e["block_time"]
+    destroy_lags, release_lags = [], []
+    for e in public:
+        k = (e["chain"], e["token"], e["address"])
+        if k in first_freeze and e["block_time"] >= first_freeze[k]:
+            if e["action"] == "destroy":
+                destroy_lags.append(_days(first_freeze[k], e["block_time"]))
+            elif e["action"] == "unfreeze":
+                release_lags.append(_days(first_freeze[k], e["block_time"]))
+
+    def _quantiles(xs: list[float]) -> dict | None:
+        if not xs:
+            return None
+        xs = sorted(xs)
+        q = lambda p: xs[min(len(xs) - 1, int(p * (len(xs) - 1)))]
+        return {"n": len(xs), "p25": round(q(0.25), 1), "median": round(q(0.5), 1), "p75": round(q(0.75), 1), "max": round(xs[-1], 1)}
+
+    # --- SDN screening per issuer and chain: of the SDN EVM addresses frozen anywhere, who froze them where
+    sdn_addr_chain = defaultdict(set)
+    for e in public:
+        if e["action"] in ("freeze", "destroy") and (e["chain"], e["address"]) in best:
+            sdn_addr_chain[(e["issuer"], e["chain"])].add(e["address"])
+    sdn_screening = {f"{i}:{c}": len(s) for (i, c), s in sdn_addr_chain.items()}
 
     return {
+        "by_issuer": by_issuer,
+        "multi_chain_addresses": len(multi),
+        "multi_chain_pairs": dict(pair_counts),
+        "freeze_to_destroy_days": _quantiles(destroy_lags),
+        "freeze_to_release_days": _quantiles(release_lags),
+        "sdn_screening": sdn_screening,
         "schema_version": 1,
         "events_total": len(events),
         "events_public": len(public),
@@ -147,6 +229,68 @@ def write_latest(events=None, attributions=None, out: Path | None = None) -> dic
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(views, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return views
+
+
+def write_site_json(events=None, attributions=None, out: Path | None = None) -> dict:
+    """Compact columnar form of the public ledger for the site's scene.
+    Parallel arrays, one entry per event, sorted by time. Strings that repeat
+    (chains, tokens, actions, sources) are small integer codes."""
+    events = events if events is not None else event_store().rows()
+    attributions = attributions if attributions is not None else attribution_store().rows()
+    chains = registry.all_chains()
+    tokens = ["USDT", "USDC"]
+    actions = ["freeze", "unfreeze", "destroy"]
+    best: dict[tuple[str, str], dict] = {}
+    for a in attributions:
+        if a.get("superseded_by"):
+            continue
+        k = (a["chain"], a["address"])
+        cur = best.get(k)
+        if cur is None or CONF_ORDER[a["confidence"]] > CONF_ORDER[cur["confidence"]]:
+            best[k] = a
+    entity_index: dict[str, int] = {}
+    entities: list[dict] = []
+
+    def ent_id(a: dict | None) -> int:
+        if a is None:
+            return -1
+        name = a.get("entity") or f"{a['source_class']} (entity pending)"
+        if name not in entity_index:
+            entity_index[name] = len(entities)
+            entities.append({"name": name, "source": a["source_class"], "program": a.get("program", "")})
+        return entity_index[name]
+
+    rows = sorted(events, key=lambda e: (e["block_time"], int(e["block_number"]), int(e["log_index"])))
+    t, c, k, a, addr, amt, tx, li, blk, conf, ent, internal = ([] for _ in range(12))
+    from datetime import datetime as _dt
+
+    for e in rows:
+        t.append(int(_dt.fromisoformat(e["block_time"].replace("Z", "+00:00")).timestamp()))
+        c.append(chains.index(e["chain"]))
+        k.append(tokens.index(e["token"]))
+        a.append(actions.index(e["action"]))
+        addr.append(e["address"])
+        amt.append(float(e["amount"]) if e.get("amount") else None)
+        tx.append(e["tx_hash"])
+        li.append(int(e["log_index"]))
+        blk.append(int(e["block_number"]))
+        b = best.get((e["chain"], e["address"]))
+        conf.append(CONF_ORDER[b["confidence"]] if b else 0)
+        ent.append(ent_id(b))
+        internal.append(1 if e.get("issuer_internal") == "true" else 0)
+    doc = {
+        "v": 1,
+        "n": len(rows),
+        "chains": chains,
+        "tokens": tokens,
+        "actions": actions,
+        "entities": entities,
+        "t": t, "c": c, "k": k, "a": a, "addr": addr, "amt": amt, "tx": tx, "li": li, "blk": blk,
+        "conf": conf, "ent": ent, "internal": internal,
+    }
+    out = out or (paths.data_dir() / "site.json")
+    out.write_text(json.dumps(doc, separators=(",", ":")) + "\n", encoding="utf-8")
+    return doc
 
 
 def write_parquet(log=print) -> list[Path]:
