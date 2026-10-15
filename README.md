@@ -128,6 +128,10 @@ As of 2026-10-15 (first bootstrap, Ethereum + Base via Etherscan `getLogs` pages
 - Coverage: Ethereum USDC freezes 2020-06-16 → 2026-10-12 (complete); Ethereum USDT destroys and releases 2017-11-28 → 2026-10-09 (complete); **Ethereum USDT freezes 2024-01-02 → 2026-10-14 only** (earlier USDT freezes arrive with the RPC backfill); Base USDC 2023-08-18 → 2026-10-08 (complete)
 - Attribution: **248** frozen addresses with a High attribution (exact match in the OFAC SDN digital-currency list via the independent nightly extract; entity names and listing dates pending the full `sdn_advanced.xml` run), **3,616** (93.6%) with no public record found yet
 
+## Roadmap
+
+Open work is tracked in [issues](https://github.com/jakeperc/freeze-ledger/issues): serving the page under jakepercy.com, the pre-2024 Ethereum USDT backfill, Tron, Solana, the full SDN parse for entity names, and an in-browser SQL panel.
+
 ## License and citation
 
 Code: MIT. Data (`data/`, `evidence/`): CC BY 4.0. Cite as *Percy, J. Freeze Ledger, release vYYYY.MM.DD, https://github.com/jakeperc/freeze-ledger*.
