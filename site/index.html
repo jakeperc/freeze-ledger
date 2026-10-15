@@ -115,7 +115,7 @@
   // To host this page elsewhere, pass ?data=https://raw.githubusercontent.com/<user>/freeze-ledger/main/data/
   const params = new URLSearchParams(location.search);
   const DATA = (params.get('data') || '../data/').replace(/\/?$/, '/');
-  const REPO = params.get('repo') || 'https://github.com/jakepercy/freeze-ledger';
+  const REPO = params.get('repo') || 'https://github.com/jakeperc/freeze-ledger';
   const CHAINS = ['ethereum', 'base', 'tron', 'solana'];
   const COLORS = { ethereum: 'var(--eth)', base: 'var(--base)', tron: 'var(--tron)', solana: 'var(--sol)' };
   const EXPLORER = {

@@ -80,7 +80,10 @@ def cmd_backfill(args) -> int:
     paths.ensure_dirs()
     cps, store, receipts = Checkpoints(), event_store(), Receipts()
     t0 = time.time()
-    stats = _adapter(args.chain).run(cps, store, receipts, log, backfill=True, max_calls=args.max_calls)
+    stats = _adapter(args.chain).run(
+        cps, store, receipts, log, backfill=True, max_calls=args.max_calls,
+        from_cursor=args.from_block, to_cursor=args.to_block,
+    )
     d = stats.as_dict()
     d["seconds"] = round(time.time() - t0, 1)
     log(f"[{args.chain}] backfill: {stats.events_new} new of {stats.events_seen} seen, {stats.calls} calls")
@@ -93,6 +96,14 @@ def cmd_backfill(args) -> int:
 def cmd_sdn(args) -> int:
     paths.ensure_dirs()
     from .attribution.sdn import download_and_parse, write_sdn_csv
+
+    if args.independent:
+        from .attribution.independent import fetch_rows
+
+        rows = fetch_rows(log=log)
+        out = write_sdn_csv(rows)
+        log(f"[sdn] wrote {out} ({len(rows)} rows) from the independent extract; entity/date columns empty until the XML run")
+        return 0
 
     dest = paths.evidence_dir() / "sdn" / "sdn_advanced.xml"
     rows, sha, size = download_and_parse(dest, log=log)
@@ -115,6 +126,10 @@ def cmd_export(args) -> int:
     from .export import write_latest, write_parquet
 
     views = write_latest()
+    from .export import write_site_json
+
+    site = write_site_json()
+    log(f"[export] site.json: {site['n']} events, {len(site['entities'])} entities")
     log(f"[export] latest.json: {views['events_public']} public events, {views['currently_frozen_total']} addresses frozen now, "
         f"attribution coverage {views['attribution_coverage']}")
     if args.parquet:
@@ -162,9 +177,12 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("backfill", help="index a chain from its contract's first block (resumable)")
     p.add_argument("--chain", required=True, choices=registry.all_chains())
     p.add_argument("--max-calls", type=int, default=None)
+    p.add_argument("--from-block", type=int, default=None, help="EVM only: start here instead of the deployment block")
+    p.add_argument("--to-block", type=int, default=None, help="EVM only: stop here (e.g. to fill a gap below a bootstrap checkpoint)")
     p.set_defaults(fn=cmd_backfill)
 
     p = sub.add_parser("sdn", help="download and extract the OFAC SDN digital-currency addresses")
+    p.add_argument("--independent", action="store_true", help="use 0xB10C's nightly address lists instead of sdn_advanced.xml (no entity/date)")
     p.set_defaults(fn=cmd_sdn)
 
     p = sub.add_parser("attribute", help="join frozen addresses to the public record and grade them")

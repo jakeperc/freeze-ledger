@@ -1,34 +1,34 @@
 {
-  "verified_at": "2026-10-14T02:58:08Z",
-  "seed": 20261014,
+  "verified_at": "2026-10-15T12:48:51Z",
+  "seed": 20261015,
   "offline": true,
-  "events": 0,
+  "events": 5376,
   "failed": 0,
   "checks": [
     {
-      "check": "data",
-      "status": "warn",
-      "detail": "freeze_events.csv is empty or absent; only structural checks run"
-    },
-    {
       "check": "schema.rows",
       "status": "ok",
-      "detail": "0 rows, unique canonical event_ids"
+      "detail": "5376 rows, unique canonical event_ids"
     },
     {
       "check": "receipts.index",
       "status": "ok",
-      "detail": "all 0 rows have an indexed receipt"
+      "detail": "all 5376 rows have an indexed receipt"
     },
     {
       "check": "receipts.hash",
       "status": "ok",
-      "detail": "0 raw file(s) re-hashed; 0 not present locally (size cap or release asset)"
+      "detail": "9 raw file(s) re-hashed; 0 not present locally (size cap or release asset)"
+    },
+    {
+      "check": "receipts.binding",
+      "status": "ok",
+      "detail": "every checked row's tx hash appears in its receipt"
     },
     {
       "check": "views.latest",
       "status": "ok",
-      "detail": "14 derived fields match (events_public=0, frozen_now=0)"
+      "detail": "20 derived fields match (events_public=5333, frozen_now=3591)"
     },
     {
       "check": "chain",
