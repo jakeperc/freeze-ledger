@@ -24,6 +24,7 @@ const vert = /* glsl */ `
   uniform float uTime;
   uniform float uHover;
   uniform float uDim;
+  uniform float uCut;
   varying vec3 vColor;
   varying float vAlpha;
   varying float vHot;
@@ -40,7 +41,8 @@ const vert = /* glsl */ `
     float size = aSize * (1.0 + hot * 1.6);
     gl_PointSize = size * uPixelRatio * (36.0 / -mv.z);
     vColor = mix(aColorFrom, aColorTo, t);
-    vAlpha = (1.0 - aHidden) * mix(1.0, 0.25, uDim * (1.0 - hot));
+    float cut = aDelay > uCut ? 0.0 : 1.0;             // the time scrubber hides later events
+    vAlpha = (1.0 - aHidden) * cut * mix(1.0, 0.25, uDim * (1.0 - hot));
   }
 `;
 
@@ -84,8 +86,15 @@ export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHa
     const geometry = new THREE.BufferGeometry();
     const initial = layouts[useStore.getState().layout].positions;
     const initialColor = colors[useStore.getState().colorMode];
+    // the one page-load moment: points arrive from an unsorted scatter into the first arrangement
+    const scatter = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      scatter[i * 3] = (Math.sin(i * 12.9898) * 43758.5453 % 1) * 30 - 15;
+      scatter[i * 3 + 1] = (Math.sin(i * 78.233) * 43758.5453 % 1) * 16 - 8;
+      scatter[i * 3 + 2] = (Math.sin(i * 39.425) * 43758.5453 % 1) * 10 - 12;
+    }
     geometry.setAttribute("position", new THREE.BufferAttribute(initial.slice(), 3));
-    geometry.setAttribute("aFrom", new THREE.BufferAttribute(initial.slice(), 3));
+    geometry.setAttribute("aFrom", new THREE.BufferAttribute(scatter, 3));
     geometry.setAttribute("aTo", new THREE.BufferAttribute(initial.slice(), 3));
     geometry.setAttribute("aColorFrom", new THREE.BufferAttribute(initialColor.slice(), 3));
     geometry.setAttribute("aColorTo", new THREE.BufferAttribute(initialColor.slice(), 3));
@@ -114,9 +123,18 @@ export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHa
       uTime: { value: 0 },
       uHover: { value: -1 },
       uDim: { value: 0 },
+      uCut: { value: 1.01 },
     }),
     [gl],
   );
+  const cut = useStore((s) => s.timeCut);
+
+  // page-load reveal
+  useEffect(() => {
+    uniforms.uProgress.value = reduced ? 1 : 0;
+    if (!reduced) gsap.to(uniforms.uProgress, { value: 1, duration: 2.4, ease: "none", delay: 0.2 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geometry]);
 
   // --- morphing ------------------------------------------------------------
   const state = useRef({ layout, colorMode, tween: null as gsap.core.Tween | null });
@@ -163,6 +181,7 @@ export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHa
   useFrame((_, dt) => {
     uniforms.uTime.value += dt;
     uniforms.uHover.value = hovered ?? -1;
+    uniforms.uCut.value += ((cut >= 1 ? 1.01 : cut) - uniforms.uCut.value) * Math.min(1, dt * 10);
     const wantDim = drawer?.kind === "address" ? 1 : 0;
     uniforms.uDim.value += (wantDim - uniforms.uDim.value) * Math.min(1, dt * 6);
   });

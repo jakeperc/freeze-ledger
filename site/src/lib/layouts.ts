@@ -66,7 +66,7 @@ export function timelineLayout(site: SiteJson): LayoutResult {
   }
   const labels = LANES.map((l, li) => {
     const count = counts[li];
-    return { text: l.label, x: SCENE_W / 2 - 0.6, y: laneTop[li] - 0.08, sub: count ? `${count.toLocaleString()} events` : "not yet indexed" };
+    return { text: l.label, x: SCENE_W / 2 - 0.6, y: laneTop[li] - 0.3, sub: count ? `${count.toLocaleString()} events` : "not yet indexed" };
   });
   return { positions: pos, labels, tMin, tMax };
 }
