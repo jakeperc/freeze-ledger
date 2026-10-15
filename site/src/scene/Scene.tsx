@@ -8,7 +8,8 @@ import { Field, type FieldHandle } from "./Field";
 import { Tooltip } from "./Tooltip";
 
 interface Projected {
-  labels: { text: string; sub?: string; weight?: number; x: number; y: number }[];
+  /** screen space; `r` is the on-screen radius of the cluster centred at (x, y) */
+  labels: { text: string; sub?: string; weight?: number; x: number; y: number; r?: number }[];
   ticks: { text: string; x: number; y: number }[];
   hover: { x: number; y: number } | null;
 }
@@ -33,7 +34,11 @@ function Projector({ layouts, onProject }: { layouts: Record<string, LayoutResul
     frame.current++;
     if (frame.current % 4 !== 0) return;
     const L = layouts[layout];
-    const labels = L.labels.map((l) => ({ text: l.text, sub: l.sub, weight: l.weight, ...project(l.x, l.y, 0) }));
+    const labels = L.labels.map((l) => {
+      const p = project(l.x, l.y, 0);
+      const edge = l.r ? project(l.x + l.r, l.y, 0) : null;
+      return { text: l.text, sub: l.sub, weight: l.weight, ...p, r: edge ? Math.hypot(edge.x - p.x, edge.y - p.y) : undefined };
+    });
     const ticks: Projected["ticks"] = [];
     if (layout === "timeline") {
       const y0 = new Date(L.tMin * 1000).getUTCFullYear(), y1 = new Date(L.tMax * 1000).getUTCFullYear();
@@ -105,10 +110,17 @@ function textWidth(s: string, px: number, mono: boolean) {
   return w;
 }
 
+const coversCircle = (b: Box, cx: number, cy: number, r: number) => {
+  const dx = Math.max(b.x - cx, 0, cx - (b.x + b.w)), dy = Math.max(b.y - cy, 0, cy - (b.y + b.h));
+  return dx * dx + dy * dy < r * r;
+};
+
 /** Keep the labels that fit: heaviest first, none on top of another, none
- *  off the field or over the masthead, the controls or the floating text. */
-function placeLabels(labels: Projected["labels"], layout: string, container: HTMLElement | null) {
-  if (!container) return labels;
+ *  off the field or over the masthead, the controls or the floating text.
+ *  A cluster label tries above, below, right and left of its cluster and takes
+ *  the first spot that covers no other cluster's points. */
+function placeLabels(labels: Projected["labels"], layout: string, container: HTMLElement | null): { l: Projected["labels"][number]; box: Box }[] {
+  if (!container) return [];
   const W = container.clientWidth, H = container.clientHeight;
   const origin = container.getBoundingClientRect();
   const reserved: Box[] = [];
@@ -119,16 +131,30 @@ function placeLabels(labels: Projected["labels"], layout: string, container: HTM
   });
   if (isWide()) reserved.push({ x: 0, y: 0, w: TEXT_COLUMN_PX, h: H });
   const order = labels.map((l, i) => ({ l, i })).sort((a, b) => (b.l.weight ?? Infinity) - (a.l.weight ?? Infinity) || a.i - b.i);
+  const clusters = labels.filter((l) => l.r);
   const kept: Box[] = [];
-  const out: Projected["labels"] = [];
+  const out: { l: Projected["labels"][number]; box: Box }[] = [];
   for (const { l } of order) {
     const w = textWidth(l.text, 12, false) + 8 + (l.sub ? textWidth(l.sub, 10.5, true) + 8 : 0), h = 23;
-    const box: Box =
-      layout === "entities" ? { x: l.x - w / 2, y: l.y, w, h } : layout === "timeline" ? { x: l.x - w, y: l.y - h, w, h } : { x: l.x, y: l.y - h, w, h };
-    if (box.x < 0 || box.y < 0 || box.x + box.w > W || box.y + box.h > H) continue;
-    if (reserved.some((r) => overlaps(box, r, 0)) || kept.some((k) => overlaps(box, k))) continue;
+    const r = l.r ?? 0, gap = 4;
+    const candidates: Box[] = l.r
+      ? [
+          { x: l.x - w / 2, y: l.y - r - gap - h, w, h },
+          { x: l.x - w / 2, y: l.y + r + gap, w, h },
+          { x: l.x + r + gap, y: l.y - h / 2, w, h },
+          { x: l.x - r - gap - w, y: l.y - h / 2, w, h },
+        ]
+      : [layout === "timeline" ? { x: l.x - w, y: l.y - h, w, h } : { x: l.x, y: l.y - h, w, h }];
+    const box = candidates.find(
+      (b) =>
+        b.x >= 0 && b.y >= 0 && b.x + b.w <= W && b.y + b.h <= H &&
+        !reserved.some((q) => overlaps(b, q, 0)) &&
+        !kept.some((k) => overlaps(b, k)) &&
+        !clusters.some((c) => c !== l && coversCircle(b, c.x, c.y, c.r! + 2)),
+    );
+    if (!box) continue;
     kept.push(box);
-    out.push(l);
+    out.push({ l, box });
   }
   return out;
 }
@@ -160,11 +186,11 @@ export function Scene({ site }: { site: SiteJson }) {
 
       {/* labels (hidden on portrait screens, where the field is turned and small) */}
       <div ref={overlay} className="pointer-events-none absolute inset-0 hidden select-none md:block">
-        {labels.map((l) => (
+        {labels.map(({ l, box }) => (
           <div
             key={layout + l.text}
             className="absolute whitespace-nowrap"
-            style={{ left: l.x, top: l.y, transform: layout === "entities" ? "translate(-50%, 0)" : layout === "timeline" ? "translate(-100%, -100%)" : "translate(0, -100%)", textAlign: layout === "timeline" ? "right" : layout === "entities" ? "center" : "left" }}
+            style={{ left: box.x, top: box.y, width: box.w, textAlign: layout === "timeline" ? "right" : "left" }}
           >
             <div className="inline-block bg-ink/70 px-1 text-[12px] leading-tight text-paper-2">{l.text}</div>
             {l.sub && <div className="mono inline-block bg-ink/70 px-1 text-[10.5px] text-paper-3">{l.sub}</div>}

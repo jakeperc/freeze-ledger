@@ -98,18 +98,29 @@ a:hover {
   border-top: 1px solid var(--color-rule);
 }
 
-/* the scene canvas sits behind the chapters */
+/* The scene is pinned while the chapters scroll. Stacked (not wide), it is a
+   band at the top and the chapters scroll beneath it; on tall windows wide
+   enough for the unrotated field the band is only as tall as the field needs,
+   which leaves the text more room. Chapters size themselves from --scene-h. */
+:root {
+  --scene-h: 56vh;
+  --scene-h: 56dvh;
+}
+@media (min-width: 768px) and (orientation: portrait) {
+  :root {
+    --scene-h: min(56dvh, 66vw);
+  }
+}
+@media (min-width: 768px) and (orientation: landscape) {
+  :root {
+    --scene-h: 100vh;
+    --scene-h: 100dvh;
+  }
+}
 .scene-pin {
   position: sticky;
   top: 0;
-  height: 56vh;
-  height: 56dvh;
-}
-@media (min-width: 768px) and (orientation: landscape) {
-  .scene-pin {
-    height: 100vh;
-    height: 100dvh;
-  }
+  height: var(--scene-h);
 }
 
 /* keyboard hint chip */

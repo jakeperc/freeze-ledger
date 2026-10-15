@@ -61,13 +61,15 @@ export function Hero({ ledger }: { ledger: Ledger }) {
     const el = root.current!;
     const blocks = el.querySelectorAll<HTMLElement>("[data-chapter]");
     const triggers: ScrollTrigger[] = [];
-    const narrow = !isWide();
+    // stacked, a chapter is current from when its top clears the pinned band
+    const pin = el.querySelector<HTMLElement>(".scene-pin")!;
+    const edge = () => (isWide() ? "55%" : `${pin.offsetHeight + 1}px`);
     blocks.forEach((b, i) => {
       triggers.push(
         ScrollTrigger.create({
           trigger: b,
-          start: narrow ? "top 85%" : "top 55%",
-          end: narrow ? "bottom 85%" : "bottom 55%",
+          start: () => `top ${edge()}`,
+          end: () => `bottom ${edge()}`,
           onEnter: () => enter(i),
           onEnterBack: () => enter(i),
         }),
@@ -139,7 +141,7 @@ export function Hero({ ledger }: { ledger: Ledger }) {
           menu, the controls or the points */}
       <div className="relative z-10 wide:pointer-events-none wide:-mt-[100vh]">
         {chapters.map((c, i) => (
-          <div key={c.id} data-chapter={c.id} className="flex min-h-[60vh] items-center px-5 py-10 md:px-8 wide:min-h-[100vh] wide:py-0">
+          <div key={c.id} data-chapter={c.id} className="flex min-h-[calc(100dvh-var(--scene-h))] items-start px-5 pt-8 pb-10 md:px-8 wide:min-h-[100vh] wide:items-center wide:py-0">
             <div className={`max-w-[34rem] transition-opacity duration-500 ${chapter === i ? "opacity-100" : "opacity-35"}`}>
               <div className="display text-[clamp(44px,9vw,124px)] text-paper tnum">
                 <Figure text={c.figure} active={chapter === i} />
