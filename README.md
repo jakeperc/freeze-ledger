@@ -4,7 +4,7 @@ An open, reproducible dataset of every address Tether and Circle have frozen or 
 
 It is a dataset first, with a page on top. Every number is derived from a chain response whose raw bytes are hashed and kept, and the published figures are re-derived by a public verification suite before anything is committed.
 
-> **Status: v0.1, first data.** Ethereum and Base are indexed (see *Status* below for exact coverage); Tron and Solana are not yet run. Every published figure passes `verify.py`.
+> **Status: v0.1.** Ethereum, Base, Tron and Solana USDC are indexed (see *Status* below for exact coverage); Solana USDT is not yet run. Every published figure passes `verify.py`.
 
 ## What you get
 
@@ -32,7 +32,7 @@ export FL_TRON_API_KEY=...                # optional, https://www.trongrid.io/
 python -m freeze_ledger backfill --chain ethereum      # years of history; resumable, Ctrl-C and re-run
 python -m freeze_ledger backfill --chain base
 python -m freeze_ledger backfill --chain tron          # the long one
-python -m freeze_ledger backfill --chain solana
+python -m freeze_ledger backfill --chain solana       # or --token USDC to index one mint
 python -m freeze_ledger sdn               # download + extract the SDN digital-currency addresses
 python -m freeze_ledger attribute         # join and grade
 python -m freeze_ledger export            # write data/latest.json
@@ -120,17 +120,17 @@ address,chain,source_class,entity,program,record_date,evidence_url,match_basis,a
 
 ## Status
 
-As of 2026-10-15 (Ethereum + Base: Etherscan `getLogs` bootstrap plus the RPC backfill of pre-2024 USDT freezes; Tron and Solana not yet run):
+As of 2026-10-15 (Ethereum + Base: Etherscan `getLogs` bootstrap plus the RPC backfill of pre-2024 USDT freezes; Tron: TronGrid backfill from the first event; Solana USDC: backfill of the current freeze authority; Solana USDT not yet run):
 
-- Events indexed: **6,582** public (44 issuer-internal rows kept and flagged)
-- Addresses frozen now: **3,971** (Ethereum USDT 2,815, Ethereum USDC 653, Base USDC 503)
-- USDT destroyed after a freeze (Ethereum, all-time): **$818,478,019**
-- Coverage: Ethereum USDT freezes, destroys and releases 2017-11-28 → 2026-10-14 (complete); Ethereum USDC freezes 2020-06-16 → 2026-10-12 (complete); Base USDC 2023-08-18 → 2026-10-08 (complete)
-- Attribution: **245** frozen addresses with a High attribution and **3** Moderate (frozen before their OFAC listing), from the full `sdn_advanced.xml` parse with entity names, programs and listing dates; **4,036** (94.2%) with no public record found yet
+- Events indexed: **17,760** public (80 issuer-internal rows kept and flagged)
+- Addresses frozen now: **11,938** (Tron USDT 7,952, Ethereum USDT 2,815, Ethereum USDC 653, Base USDC 503, Solana USDC 15)
+- USDT destroyed after a freeze (all-time): **$1,402,320,590** (Ethereum $818,478,019, Tron $583,842,571)
+- Coverage: Ethereum USDT freezes, destroys and releases 2017-11-28 → 2026-10-14 (complete); Ethereum USDC freezes 2020-06-16 → 2026-10-12 (complete); Base USDC 2023-08-18 → 2026-10-08 (complete); Tron USDT freezes, destroys and releases 2020-06-26 → 2026-10-15 (complete); Solana USDC 2024-08-23 → 2026-10-09 (**partial**: only freezes signed by the current freeze authority, a multisig created 2024-08-20; earlier freezes are not yet indexed)
+- Attribution: **572** frozen addresses with a High attribution and **17** Moderate (frozen before their OFAC listing), from the full `sdn_advanced.xml` parse with entity names, programs and listing dates; **12,630** (95.5%) with no public record found yet
 
 ## Roadmap
 
-Open work is tracked in [issues](https://github.com/jakeperc/freeze-ledger/issues): serving the page under jakepercy.com, Tron, Solana, and an in-browser SQL panel.
+Open work is tracked in [issues](https://github.com/jakeperc/freeze-ledger/issues): serving the page under jakepercy.com, Solana USDT and pre-2024 Solana USDC, and an in-browser SQL panel.
 
 ## License and citation
 

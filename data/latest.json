@@ -1,11 +1,11 @@
 {
   "attribution_coverage": {
-    "frozen_addresses": 4284,
-    "high": 245,
+    "frozen_addresses": 13219,
+    "high": 572,
     "low": 0,
-    "moderate": 3,
-    "unattributed": 4036,
-    "unattributed_share": 0.9421
+    "moderate": 17,
+    "unattributed": 12630,
+    "unattributed_share": 0.9554
   },
   "attribution_coverage_by_chain": {
     "base": {
@@ -20,13 +20,13 @@
     },
     "solana": {
       "attributed": 0,
-      "frozen_addresses": 0,
-      "unattributed": 0
+      "frozen_addresses": 18,
+      "unattributed": 18
     },
     "tron": {
-      "attributed": 0,
-      "frozen_addresses": 0,
-      "unattributed": 0
+      "attributed": 341,
+      "frozen_addresses": 8917,
+      "unattributed": 8576
     }
   },
   "by_chain_action": {
@@ -38,41 +38,50 @@
       "destroy": 1245,
       "freeze": 4071,
       "unfreeze": 573
+    },
+    "solana": {
+      "freeze": 19,
+      "unfreeze": 4
+    },
+    "tron": {
+      "destroy": 1223,
+      "freeze": 8954,
+      "unfreeze": 978
     }
   },
   "by_issuer": {
     "circle": {
       "attributed_addresses": 248,
-      "currently_frozen": 1156,
+      "currently_frozen": 1171,
       "destroyed_total": "0.000000",
       "destroys": 0,
-      "events": 1822,
-      "freezes": 1503,
-      "frozen_addresses": 1445,
-      "released_addresses": 289,
-      "unfreezes": 319
+      "events": 1845,
+      "freezes": 1522,
+      "frozen_addresses": 1463,
+      "released_addresses": 292,
+      "unfreezes": 323
     },
     "tether": {
-      "attributed_addresses": 124,
-      "currently_frozen": 2815,
-      "destroyed_total": "818478019.343261",
-      "destroys": 1245,
-      "events": 4760,
-      "freezes": 3168,
-      "frozen_addresses": 3158,
-      "released_addresses": 346,
-      "unfreezes": 347
+      "attributed_addresses": 465,
+      "currently_frozen": 10767,
+      "destroyed_total": "1402320590.450255",
+      "destroys": 2468,
+      "events": 15915,
+      "freezes": 12122,
+      "frozen_addresses": 12075,
+      "released_addresses": 1324,
+      "unfreezes": 1325
     }
   },
   "by_token_action": {
     "USDC": {
-      "freeze": 1503,
-      "unfreeze": 319
+      "freeze": 1522,
+      "unfreeze": 323
     },
     "USDT": {
-      "destroy": 1245,
-      "freeze": 3168,
-      "unfreeze": 347
+      "destroy": 2468,
+      "freeze": 12122,
+      "unfreeze": 1325
     }
   },
   "checkpoints": {
@@ -95,6 +104,25 @@
         "0xdac17f958d2ee523a2206206994597c13d831ec7": 4634748
       },
       "last_block": 26193169
+    },
+    "solana": {
+      "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": {
+        "authority_history": [
+          "7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar"
+        ],
+        "backfill_done": true,
+        "freeze_authority": "7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar",
+        "last_signature": "3JZTnWWKmSCGVYZKTQRfpKU7KMgaV4LVuroY9Ku2HW5cm17WeTSwsFKm6LKK4JC878F35nBNMofTBwdDsn1NhYuE",
+        "last_slot": 454774557,
+        "oldest_signature": "2JRVANJBWiEB2Amb8bBZ9Uk7sca9WRye2eoy728BotzPqRuiyX8S7aeUrVQZ3mTsd5nqrWyFsUC5hsoiWSpL5Pv3"
+      }
+    },
+    "tron": {
+      "last_ts": {
+        "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:AddedBlackList": 1792072872000,
+        "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:DestroyedBlackFunds": 1791998667000,
+        "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:RemovedBlackList": 1791899304000
+      }
     }
   },
   "coverage_span": {
@@ -148,16 +176,43 @@
       "last": "2026-10-14T20:35:35Z"
     },
     "solana": {
-      "detail": {},
-      "events": 0,
-      "first": null,
-      "last": null
+      "detail": {
+        "USDC:freeze": {
+          "events": 19,
+          "first": "2024-08-23T15:49:17Z",
+          "last": "2026-10-09T05:38:44Z"
+        },
+        "USDC:unfreeze": {
+          "events": 4,
+          "first": "2024-08-23T15:50:23Z",
+          "last": "2025-09-04T05:08:45Z"
+        }
+      },
+      "events": 23,
+      "first": "2024-08-23T15:49:17Z",
+      "last": "2026-10-09T05:38:44Z"
     },
     "tron": {
-      "detail": {},
-      "events": 0,
-      "first": null,
-      "last": null
+      "detail": {
+        "USDT:destroy": {
+          "events": 1258,
+          "first": "2020-06-26T15:27:33Z",
+          "last": "2026-10-14T17:24:27Z"
+        },
+        "USDT:freeze": {
+          "events": 8955,
+          "first": "2020-06-26T15:22:39Z",
+          "last": "2026-10-15T14:01:12Z"
+        },
+        "USDT:unfreeze": {
+          "events": 978,
+          "first": "2021-08-01T15:07:24Z",
+          "last": "2026-10-13T13:48:24Z"
+        }
+      },
+      "events": 11191,
+      "first": "2020-06-26T15:22:39Z",
+      "last": "2026-10-15T14:01:12Z"
     }
   },
   "currently_frozen": {
@@ -167,44 +222,69 @@
     "ethereum": {
       "USDC": 653,
       "USDT": 2815
+    },
+    "solana": {
+      "USDC": 15
+    },
+    "tron": {
+      "USDT": 7952
     }
   },
-  "currently_frozen_total": 3971,
+  "currently_frozen_total": 11938,
   "destroyed_usdt_by_chain": {
-    "ethereum": "818478019.343261"
+    "ethereum": "818478019.343261",
+    "tron": "583842571.106994"
   },
-  "events_issuer_internal": 44,
-  "events_public": 6582,
-  "events_total": 6626,
+  "events_issuer_internal": 80,
+  "events_public": 17760,
+  "events_total": 17840,
   "files": {
     "attributions.csv": {
-      "rows": 620,
-      "sha256": "b7889c0a782ac33e474a7235f947f6278c021232de8e00c6da46d8a621c7d095"
+      "rows": 1067,
+      "sha256": "1edbd42c25018ffd6349e577f02163866dab66b9f9221b650a8b2ab0846290cb"
     },
     "evidence.csv": {
-      "sha256": "0cc757c571bf351313d9d08f131cf00008342999800b95c318a4bbbc48cbfda5"
+      "sha256": "3048e3a1bb1e44d08c837c04189a6605e5644ac511e7298973736f45c4f4f8c9"
     },
     "freeze_events.csv": {
-      "rows": 6626,
-      "sha256": "15381d6f233023a5238829e4965dff806c9cf27ccb8f5aafedf45c0d010ab44c"
+      "rows": 17840,
+      "sha256": "c351619530f4098b60200945edc7e41334834cf8aa39ab97e5b980862605e75f"
     }
   },
   "freeze_to_destroy_days": {
     "max": 2763.6,
-    "median": 43.9,
-    "n": 1245,
+    "median": 129.7,
+    "n": 2468,
     "p25": 0.0,
-    "p75": 271.2
+    "p75": 244.9
   },
   "freeze_to_release_days": {
     "max": 1427.6,
-    "median": 470.9,
-    "n": 665,
-    "p25": 50.2,
-    "p75": 581.2
+    "median": 49.9,
+    "n": 1646,
+    "p25": 42.1,
+    "p75": 415.0
   },
-  "generated_at": "2026-10-15T17:02:33Z",
-  "last_run": {},
+  "generated_at": "2026-10-15T20:45:46Z",
+  "last_run": {
+    "backfill": {
+      "at": "2026-10-15T20:45:22Z",
+      "chains": [
+        {
+          "calls": 31,
+          "chain": "solana",
+          "cursor_from": "",
+          "cursor_to": "454774557",
+          "events_new": 23,
+          "events_seen": 23,
+          "notes": [
+            "USDC: backfill complete"
+          ],
+          "seconds": 37.4
+        }
+      ]
+    }
+  },
   "monthly_freezes": [
     {
       "base": 0,
@@ -288,7 +368,7 @@
       "ethereum": 3,
       "month": "2020-06",
       "solana": 0,
-      "tron": 0
+      "tron": 1
     },
     {
       "base": 0,
@@ -309,21 +389,21 @@
       "ethereum": 29,
       "month": "2020-09",
       "solana": 0,
-      "tron": 0
+      "tron": 6
     },
     {
       "base": 0,
       "ethereum": 125,
       "month": "2020-10",
       "solana": 0,
-      "tron": 0
+      "tron": 1
     },
     {
       "base": 0,
       "ethereum": 14,
       "month": "2020-11",
       "solana": 0,
-      "tron": 0
+      "tron": 5
     },
     {
       "base": 0,
@@ -337,28 +417,28 @@
       "ethereum": 25,
       "month": "2021-01",
       "solana": 0,
-      "tron": 0
+      "tron": 3
     },
     {
       "base": 0,
       "ethereum": 7,
       "month": "2021-02",
       "solana": 0,
-      "tron": 0
+      "tron": 3
     },
     {
       "base": 0,
       "ethereum": 112,
       "month": "2021-03",
       "solana": 0,
-      "tron": 0
+      "tron": 5
     },
     {
       "base": 0,
       "ethereum": 27,
       "month": "2021-04",
       "solana": 0,
-      "tron": 0
+      "tron": 6
     },
     {
       "base": 0,
@@ -372,7 +452,7 @@
       "ethereum": 26,
       "month": "2021-06",
       "solana": 0,
-      "tron": 0
+      "tron": 1
     },
     {
       "base": 0,
@@ -386,7 +466,7 @@
       "ethereum": 16,
       "month": "2021-08",
       "solana": 0,
-      "tron": 0
+      "tron": 1
     },
     {
       "base": 0,
@@ -407,21 +487,21 @@
       "ethereum": 21,
       "month": "2021-11",
       "solana": 0,
-      "tron": 0
+      "tron": 4
     },
     {
       "base": 0,
       "ethereum": 6,
       "month": "2021-12",
       "solana": 0,
-      "tron": 0
+      "tron": 1
     },
     {
       "base": 0,
       "ethereum": 20,
       "month": "2022-01",
       "solana": 0,
-      "tron": 0
+      "tron": 13
     },
     {
       "base": 0,
@@ -435,392 +515,392 @@
       "ethereum": 41,
       "month": "2022-03",
       "solana": 0,
-      "tron": 0
+      "tron": 4
     },
     {
       "base": 0,
       "ethereum": 18,
       "month": "2022-04",
       "solana": 0,
-      "tron": 0
+      "tron": 1
     },
     {
       "base": 0,
       "ethereum": 11,
       "month": "2022-05",
       "solana": 0,
-      "tron": 0
+      "tron": 5
     },
     {
       "base": 0,
       "ethereum": 53,
       "month": "2022-06",
       "solana": 0,
-      "tron": 0
+      "tron": 7
     },
     {
       "base": 0,
       "ethereum": 6,
       "month": "2022-07",
       "solana": 0,
-      "tron": 0
+      "tron": 17
     },
     {
       "base": 0,
       "ethereum": 64,
       "month": "2022-08",
       "solana": 0,
-      "tron": 0
+      "tron": 9
     },
     {
       "base": 0,
       "ethereum": 11,
       "month": "2022-09",
       "solana": 0,
-      "tron": 0
+      "tron": 1
     },
     {
       "base": 0,
       "ethereum": 78,
       "month": "2022-10",
       "solana": 0,
-      "tron": 0
+      "tron": 206
     },
     {
       "base": 0,
       "ethereum": 70,
       "month": "2022-11",
       "solana": 0,
-      "tron": 0
+      "tron": 10
     },
     {
       "base": 0,
       "ethereum": 3,
       "month": "2022-12",
       "solana": 0,
-      "tron": 0
+      "tron": 42
     },
     {
       "base": 0,
       "ethereum": 20,
       "month": "2023-01",
       "solana": 0,
-      "tron": 0
+      "tron": 14
     },
     {
       "base": 0,
       "ethereum": 16,
       "month": "2023-02",
       "solana": 0,
-      "tron": 0
+      "tron": 6
     },
     {
       "base": 0,
       "ethereum": 20,
       "month": "2023-03",
       "solana": 0,
-      "tron": 0
+      "tron": 27
     },
     {
       "base": 0,
       "ethereum": 15,
       "month": "2023-04",
       "solana": 0,
-      "tron": 0
+      "tron": 6
     },
     {
       "base": 0,
       "ethereum": 29,
       "month": "2023-05",
       "solana": 0,
-      "tron": 0
+      "tron": 8
     },
     {
       "base": 0,
       "ethereum": 5,
       "month": "2023-06",
       "solana": 0,
-      "tron": 0
+      "tron": 20
     },
     {
       "base": 0,
       "ethereum": 25,
       "month": "2023-07",
       "solana": 0,
-      "tron": 0
+      "tron": 26
     },
     {
       "base": 150,
       "ethereum": 28,
       "month": "2023-08",
       "solana": 0,
-      "tron": 0
+      "tron": 6
     },
     {
       "base": 1,
       "ethereum": 12,
       "month": "2023-09",
       "solana": 0,
-      "tron": 0
+      "tron": 19
     },
     {
       "base": 8,
       "ethereum": 39,
       "month": "2023-10",
       "solana": 0,
-      "tron": 0
+      "tron": 62
     },
     {
       "base": 0,
       "ethereum": 70,
       "month": "2023-11",
       "solana": 0,
-      "tron": 0
+      "tron": 21
     },
     {
       "base": 0,
       "ethereum": 221,
       "month": "2023-12",
       "solana": 0,
-      "tron": 0
+      "tron": 60
     },
     {
       "base": 0,
       "ethereum": 7,
       "month": "2024-01",
       "solana": 0,
-      "tron": 0
+      "tron": 10
     },
     {
       "base": 1,
       "ethereum": 21,
       "month": "2024-02",
       "solana": 0,
-      "tron": 0
+      "tron": 30
     },
     {
       "base": 9,
       "ethereum": 100,
       "month": "2024-03",
       "solana": 0,
-      "tron": 0
+      "tron": 129
     },
     {
       "base": 1,
       "ethereum": 74,
       "month": "2024-04",
       "solana": 0,
-      "tron": 0
+      "tron": 102
     },
     {
       "base": 5,
       "ethereum": 92,
       "month": "2024-05",
       "solana": 0,
-      "tron": 0
+      "tron": 54
     },
     {
       "base": 0,
       "ethereum": 108,
       "month": "2024-06",
       "solana": 0,
-      "tron": 0
+      "tron": 130
     },
     {
       "base": 0,
       "ethereum": 129,
       "month": "2024-07",
       "solana": 0,
-      "tron": 0
+      "tron": 83
     },
     {
       "base": 1,
       "ethereum": 23,
       "month": "2024-08",
-      "solana": 0,
-      "tron": 0
+      "solana": 1,
+      "tron": 108
     },
     {
       "base": 3,
       "ethereum": 53,
       "month": "2024-09",
       "solana": 0,
-      "tron": 0
+      "tron": 86
     },
     {
       "base": 0,
       "ethereum": 102,
       "month": "2024-10",
       "solana": 0,
-      "tron": 0
+      "tron": 145
     },
     {
       "base": 0,
       "ethereum": 45,
       "month": "2024-11",
       "solana": 0,
-      "tron": 0
+      "tron": 130
     },
     {
       "base": 7,
       "ethereum": 55,
       "month": "2024-12",
       "solana": 0,
-      "tron": 0
+      "tron": 218
     },
     {
       "base": 0,
       "ethereum": 76,
       "month": "2025-01",
       "solana": 0,
-      "tron": 0
+      "tron": 173
     },
     {
       "base": 4,
       "ethereum": 40,
       "month": "2025-02",
       "solana": 0,
-      "tron": 0
+      "tron": 175
     },
     {
       "base": 5,
       "ethereum": 69,
       "month": "2025-03",
-      "solana": 0,
-      "tron": 0
+      "solana": 1,
+      "tron": 224
     },
     {
       "base": 10,
       "ethereum": 47,
       "month": "2025-04",
       "solana": 0,
-      "tron": 0
+      "tron": 252
     },
     {
       "base": 4,
       "ethereum": 67,
       "month": "2025-05",
-      "solana": 0,
-      "tron": 0
+      "solana": 4,
+      "tron": 342
     },
     {
       "base": 0,
       "ethereum": 30,
       "month": "2025-06",
-      "solana": 0,
-      "tron": 0
+      "solana": 3,
+      "tron": 175
     },
     {
       "base": 2,
       "ethereum": 100,
       "month": "2025-07",
       "solana": 0,
-      "tron": 0
+      "tron": 1069
     },
     {
       "base": 21,
       "ethereum": 74,
       "month": "2025-08",
-      "solana": 0,
-      "tron": 0
+      "solana": 3,
+      "tron": 209
     },
     {
       "base": 9,
       "ethereum": 65,
       "month": "2025-09",
       "solana": 0,
-      "tron": 0
+      "tron": 316
     },
     {
       "base": 7,
       "ethereum": 110,
       "month": "2025-10",
       "solana": 0,
-      "tron": 0
+      "tron": 216
     },
     {
       "base": 62,
       "ethereum": 141,
       "month": "2025-11",
-      "solana": 0,
-      "tron": 0
+      "solana": 1,
+      "tron": 206
     },
     {
       "base": 1,
       "ethereum": 53,
       "month": "2025-12",
       "solana": 0,
-      "tron": 0
+      "tron": 152
     },
     {
       "base": 7,
       "ethereum": 58,
       "month": "2026-01",
       "solana": 0,
-      "tron": 0
+      "tron": 157
     },
     {
       "base": 0,
       "ethereum": 41,
       "month": "2026-02",
       "solana": 0,
-      "tron": 0
+      "tron": 189
     },
     {
       "base": 21,
       "ethereum": 242,
       "month": "2026-03",
       "solana": 0,
-      "tron": 0
+      "tron": 754
     },
     {
       "base": 3,
       "ethereum": 54,
       "month": "2026-04",
       "solana": 0,
-      "tron": 0
+      "tron": 416
     },
     {
       "base": 10,
       "ethereum": 55,
       "month": "2026-05",
-      "solana": 0,
-      "tron": 0
+      "solana": 1,
+      "tron": 291
     },
     {
       "base": 2,
       "ethereum": 58,
       "month": "2026-06",
       "solana": 0,
-      "tron": 0
+      "tron": 309
     },
     {
       "base": 150,
       "ethereum": 208,
       "month": "2026-07",
       "solana": 0,
-      "tron": 0
+      "tron": 441
     },
     {
       "base": 33,
       "ethereum": 78,
       "month": "2026-08",
-      "solana": 0,
-      "tron": 0
+      "solana": 3,
+      "tron": 238
     },
     {
       "base": 59,
       "ethereum": 105,
       "month": "2026-09",
       "solana": 0,
-      "tron": 0
+      "tron": 535
     },
     {
       "base": 4,
       "ethereum": 31,
       "month": "2026-10",
-      "solana": 0,
-      "tron": 0
+      "solana": 2,
+      "tron": 263
     }
   ],
   "multi_chain_addresses": 576,
@@ -928,36 +1008,53 @@
   "sdn_screening": {
     "circle:base": 124,
     "circle:ethereum": 124,
-    "tether:ethereum": 124
+    "tether:ethereum": 124,
+    "tether:tron": 341
   },
   "top_programs": [
     [
-      "CYBER2",
-      92
+      "SDGT",
+      254
+    ],
+    [
+      "FTO",
+      147
+    ],
+    [
+      "DPRK4",
+      128
     ],
     [
       "ILLICIT-DRUGS-EO14059",
-      82
+      99
+    ],
+    [
+      "CYBER2",
+      96
+    ],
+    [
+      "CYBER4",
+      75
     ],
     [
       "DPRK3",
       64
     ],
     [
-      "CYBER4",
+      "TCO",
+      59
+    ],
+    [
+      "IFSR",
       46
     ],
     [
-      "SDGT",
-      40
-    ],
-    [
       "NPWMD",
-      32
+      44
     ],
     [
       "RUSSIA-EO14024",
-      32
+      43
     ],
     [
       "ELECTION-EO13848",
@@ -965,23 +1062,15 @@
     ],
     [
       "HRIT-IR",
-      24
-    ],
-    [
-      "DPRK4",
-      18
-    ],
-    [
-      "IFSR",
-      6
-    ],
-    [
-      "CYBER3",
-      2
+      26
     ],
     [
       "IRGC",
-      2
+      15
+    ],
+    [
+      "IRAN-EO13902",
+      15
     ]
   ]
 }

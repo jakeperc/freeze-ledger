@@ -1,24 +1,24 @@
 {
-  "verified_at": "2026-10-15T17:02:36Z",
+  "verified_at": "2026-10-15T21:09:26Z",
   "seed": 20261015,
   "offline": false,
-  "events": 6626,
+  "events": 17840,
   "failed": 0,
   "checks": [
     {
       "check": "schema.rows",
       "status": "ok",
-      "detail": "6626 rows, unique canonical event_ids"
+      "detail": "17840 rows, unique canonical event_ids"
     },
     {
       "check": "receipts.index",
       "status": "ok",
-      "detail": "all 6626 rows have an indexed receipt"
+      "detail": "all 17840 rows have an indexed receipt"
     },
     {
       "check": "receipts.hash",
       "status": "ok",
-      "detail": "232 raw file(s) re-hashed; 0 not present locally (size cap or release asset)"
+      "detail": "312 raw file(s) re-hashed; 0 not present locally (size cap or release asset)"
     },
     {
       "check": "receipts.binding",
@@ -28,7 +28,7 @@
     {
       "check": "views.latest",
       "status": "ok",
-      "detail": "20 derived fields match (events_public=6582, frozen_now=3971)"
+      "detail": "20 derived fields match (events_public=17760, frozen_now=11938)"
     },
     {
       "check": "chain.ethereum",
@@ -42,13 +42,13 @@
     },
     {
       "check": "chain.tron",
-      "status": "skipped",
-      "detail": "no rows"
+      "status": "ok",
+      "detail": "5 sampled rows re-derived from https://api.trongrid.io"
     },
     {
       "check": "chain.solana",
-      "status": "skipped",
-      "detail": "no rows"
+      "status": "ok",
+      "detail": "5 sampled rows re-derived from https://api.mainnet-beta.solana.com (5); second endpoint did not hold every sampled transaction"
     },
     {
       "check": "sdn.crosscheck",

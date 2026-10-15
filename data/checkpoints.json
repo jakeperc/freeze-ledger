@@ -18,5 +18,24 @@
       "0xdac17f958d2ee523a2206206994597c13d831ec7": 4634748
     },
     "last_block": 26193169
+  },
+  "solana": {
+    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": {
+      "authority_history": [
+        "7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar"
+      ],
+      "backfill_done": true,
+      "freeze_authority": "7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar",
+      "last_signature": "3JZTnWWKmSCGVYZKTQRfpKU7KMgaV4LVuroY9Ku2HW5cm17WeTSwsFKm6LKK4JC878F35nBNMofTBwdDsn1NhYuE",
+      "last_slot": 454774557,
+      "oldest_signature": "2JRVANJBWiEB2Amb8bBZ9Uk7sca9WRye2eoy728BotzPqRuiyX8S7aeUrVQZ3mTsd5nqrWyFsUC5hsoiWSpL5Pv3"
+    }
+  },
+  "tron": {
+    "last_ts": {
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:AddedBlackList": 1792072872000,
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:DestroyedBlackFunds": 1791998667000,
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:RemovedBlackList": 1791899304000
+    }
   }
 }

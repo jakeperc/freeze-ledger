@@ -216,10 +216,18 @@ def recheck_tron(e: dict) -> str | None:
     return None
 
 
-def recheck_solana(e: dict, rpc: JsonRpc) -> str | None:
-    tx, _ = rpc.call("getTransaction", [e["tx_hash"], {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 0}])
+def recheck_solana(e: dict, urls: list[str], served_by: list[str]) -> str | None:
+    # Public Solana endpoints prune history at different depths and answer
+    # `null` for a transaction they no longer hold. That is "not served here",
+    # not a mismatch: try the next endpoint and record which one answered.
+    tx = None
+    for url in urls:
+        tx, _ = JsonRpc([url]).call("getTransaction", [e["tx_hash"], {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 0}])
+        if tx:
+            served_by.append(url)
+            break
     if not tx:
-        return "transaction not found"
+        return "transaction not found on any endpoint"
     mint = next((m.mint for m in registry.SOLANA_MINTS if m.token == e["token"]), "")
     found = parse_freeze_instructions(tx, mint)
     hit = next((f for f in found if f["position"] == int(e["log_index"])), None)
@@ -240,7 +248,8 @@ def check_chain(events: list[dict], rep: Report, sample: int, seed: int, chains:
             rep.skip(f"chain.{chain}", "no rows")
             continue
         picked = rng.sample(rows, min(sample, len(rows)))
-        rpc = JsonRpc(_second_endpoint(chain)) if chain != "tron" else None
+        rpc = JsonRpc(_second_endpoint(chain)) if chain in ("ethereum", "base") else None
+        served_by: list[str] = []
         problems = []
         for e in picked:
             try:
@@ -249,7 +258,7 @@ def check_chain(events: list[dict], rep: Report, sample: int, seed: int, chains:
                 elif chain == "tron":
                     err = recheck_tron(e)
                 else:
-                    err = recheck_solana(e, rpc)
+                    err = recheck_solana(e, _second_endpoint(chain), served_by)
             except Exception as ex:  # network or provider failure is reported, not hidden
                 err = f"could not re-fetch: {ex}"
             if err:
@@ -257,7 +266,13 @@ def check_chain(events: list[dict], rep: Report, sample: int, seed: int, chains:
         if problems:
             rep.fail(f"chain.{chain}", f"{len(problems)}/{len(picked)} sampled rows failed re-derivation: {problems[:3]}")
         else:
-            src = rpc.active_url if rpc else registry.TRONGRID_BASE
+            if chain == "solana":
+                counts = {u: served_by.count(u) for u in dict.fromkeys(served_by)}
+                src = ", ".join(f"{u} ({n})" for u, n in counts.items())
+                if any(u != _second_endpoint(chain)[0] for u in served_by):
+                    src += "; second endpoint did not hold every sampled transaction"
+            else:
+                src = rpc.active_url if rpc else registry.TRONGRID_BASE
             rep.ok(f"chain.{chain}", f"{len(picked)} sampled rows re-derived from {src}")
 
 
