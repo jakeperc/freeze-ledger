@@ -7,9 +7,15 @@
     "last_block": 52355491
   },
   "ethereum": {
+    "backfill_cursor": 18900000,
+    "backfill_done": true,
     "bootstrap": {
       "source": "etherscan_getlogs_pages",
       "through_block": 26193169
+    },
+    "deployment_block": {
+      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6082465,
+      "0xdac17f958d2ee523a2206206994597c13d831ec7": 4634748
     },
     "last_block": 26193169
   }
