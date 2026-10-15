@@ -1,0 +1,162 @@
+/** The receipt. One event: what the chain said, where it was read from, the
+ *  hash of the raw bytes, the public record for the address, and a button
+ *  that re-derives the row from a public node in the visitor's browser. */
+
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { CONTRACTS, rederive, type Rederivation } from "../lib/chain";
+import { CONF_LABEL, EXPLORER, type Chain, type Ledger } from "../lib/data";
+import { fmtDateTime, fmtInt, fmtUsd, short } from "../lib/format";
+import { eventRow } from "../lib/lookup";
+import { useStore } from "../lib/store";
+
+const REPO = "https://github.com/jakeperc/freeze-ledger";
+
+export function Drawer({ ledger }: { ledger: Ledger }) {
+  const drawer = useStore((s) => s.drawer);
+  const openDrawer = useStore((s) => s.openDrawer);
+  const [re, setRe] = useState<{ status: "idle" | "running" | "done"; result?: Rederivation }>({ status: "idle" });
+  const index = drawer?.kind === "event" ? drawer.index! : null;
+
+  useEffect(() => { setRe({ status: "idle" }); }, [index]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") openDrawer(null); };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [openDrawer]);
+
+  const row = index !== null ? eventRow(ledger, index) : null;
+  const receipt = row ? ledger.site.evidence[ledger.site.evid[row.index]] : null;
+  const attributions = row ? ledger.attributions.get(`${row.chain}|${row.address}`) ?? [] : [];
+  const contract = row ? CONTRACTS[row.chain as "ethereum" | "base"]?.find((c) => c.token === row.token)?.address ?? "" : "";
+
+  const run = async () => {
+    if (!row) return;
+    setRe({ status: "running" });
+    const result = await rederive({ chain: row.chain as Chain, tx: row.tx, logIndex: row.logIndex, block: row.block, address: row.address, action: row.action, amount: row.amount, contract });
+    setRe({ status: "done", result });
+  };
+
+  const copyCard = () => {
+    if (!row || !receipt) return;
+    const lines = [
+      `Freeze Ledger — event ${row.chain}:${row.tx}:${row.logIndex}`,
+      `${row.action} · ${row.token} on ${row.chain} · ${fmtDateTime(row.time)} · block ${row.block}`,
+      `address ${row.address}${row.amount !== null ? ` · amount ${fmtUsd(row.amount, 6)}` : ""}`,
+      `receipt ${receipt.id} · ${receipt.kind} · sha256 ${receipt.sha256}`,
+      `source ${receipt.locator}`,
+      attributions.length ? `record ${attributions.map((a) => `${a.entity || "OFAC sanctions list"} (${a.confidence}): ${a.evidence_url}`).join(" | ")}` : "no public record found",
+      `${REPO} · data as of ${ledger.latest.generated_at}`,
+    ];
+    navigator.clipboard?.writeText(lines.join("\n"));
+  };
+
+  return (
+    <AnimatePresence>
+      {row && receipt && (
+        <>
+          <motion.div key="scrim" className="fixed inset-0 z-40 bg-ink/60" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => openDrawer(null)} />
+          <motion.aside
+            key="panel"
+            role="dialog"
+            aria-label="Event receipt"
+            className="panel fixed inset-y-0 right-0 z-50 w-full max-w-[34rem] overflow-y-auto border-l border-rule-2 bg-ink px-6 py-6"
+            initial={{ x: 40, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 40, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 380, damping: 36 }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className={`display text-[30px] state-${row.action}`}>{row.action === "freeze" ? "Frozen" : row.action === "unfreeze" ? "Released" : "Destroyed"}</div>
+                <div className="text-paper-2">{row.token} on {row.chain} · {fmtDateTime(row.time)}</div>
+              </div>
+              <button onClick={() => openDrawer(null)} aria-label="Close">Close</button>
+            </div>
+
+            <dl className="mt-6 grid grid-cols-[7rem_1fr] gap-x-4 gap-y-2 text-[13px]">
+              <dt className="text-paper-3">Address</dt>
+              <dd className="mono break-all"><a href={EXPLORER[row.chain as Chain].address(row.address)} target="_blank" rel="noopener">{row.address}</a></dd>
+              {row.amount !== null && (<><dt className="text-paper-3">Destroyed</dt><dd className="mono text-ember">{fmtUsd(row.amount, 2)} {row.token}</dd></>)}
+              <dt className="text-paper-3">Transaction</dt>
+              <dd className="mono break-all"><a href={EXPLORER[row.chain as Chain].tx(row.tx)} target="_blank" rel="noopener">{row.tx}</a></dd>
+              <dt className="text-paper-3">Block · log</dt>
+              <dd className="mono">{fmtInt(row.block)} · {row.logIndex}</dd>
+              <dt className="text-paper-3">Row id</dt>
+              <dd className="mono break-all text-paper-2">{row.chain}:{short(row.tx, 10, 6)}:{row.logIndex}</dd>
+            </dl>
+
+            <div className="rule mt-6 pt-4">
+              <div className="text-[13px] text-paper-3">Receipt</div>
+              <dl className="mt-2 grid grid-cols-[7rem_1fr] gap-x-4 gap-y-2 text-[13px]">
+                <dt className="text-paper-3">Kind</dt><dd className="mono">{receipt.kind}</dd>
+                <dt className="text-paper-3">Read from</dt><dd className="mono break-all text-paper-2">{receipt.locator}</dd>
+                <dt className="text-paper-3">Fetched</dt><dd className="mono">{fmtDateTime(receipt.fetched_at)}</dd>
+                <dt className="text-paper-3">SHA-256</dt>
+                <dd className="mono break-all">
+                  <a href={`${REPO}/blob/main/evidence/raw/${receipt.fetched_at.slice(0, 10)}/${receipt.sha256.slice(0, 16)}.json`} target="_blank" rel="noopener">{receipt.sha256}</a>
+                </dd>
+                <dt className="text-paper-3">Size</dt><dd className="mono">{fmtInt(receipt.bytes)} bytes</dd>
+              </dl>
+            </div>
+
+            <div className="rule mt-6 pt-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-[13px] text-paper-3">Re-derive from a public node</div>
+                <button className="primary" disabled={re.status === "running"} onClick={run}>{re.status === "running" ? "Fetching…" : re.status === "done" ? "Run again" : "Run in my browser"}</button>
+              </div>
+              <p className="mt-1 text-[12px] text-paper-3">Fetches this transaction's receipt from a public endpoint, decodes the log at index {row.logIndex} with the issuer's ABI, and compares it with the row above.</p>
+              {re.status === "done" && re.result && (
+                <div className="mt-3">
+                  {re.result.error ? (
+                    <div className="text-ember">{re.result.error}</div>
+                  ) : (
+                    <>
+                      <div className={re.result.ok ? "text-sage" : "text-ember"}>{re.result.ok ? "Every field matches." : "A field does not match."}</div>
+                      <table className="mt-2 text-[12.5px]">
+                        <thead><tr><th>Field</th><th>Row</th><th>Chain</th><th></th></tr></thead>
+                        <tbody>
+                          {re.result.checks.map((c) => (
+                            <tr key={c.field}>
+                              <td className="text-paper-3">{c.field}</td>
+                              <td className="mono break-all">{c.row}</td>
+                              <td className="mono break-all">{c.chain}</td>
+                              <td className={c.ok ? "text-sage" : "text-ember"}>{c.ok ? "ok" : "differs"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      <div className="mono mt-2 text-[11.5px] text-paper-3">{re.result.endpoint.replace(/^https?:\/\//, "")} · {re.result.ms} ms</div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="rule mt-6 pt-4">
+              <div className="text-[13px] text-paper-3">Public record for this address</div>
+              {attributions.length === 0 ? (
+                <p className="mt-2 text-[13px] text-paper-2">None found in the sources searched so far.</p>
+              ) : (
+                <ul className="mt-2 space-y-3 text-[13px]">
+                  {attributions.map((a) => (
+                    <li key={a.attribution_id}>
+                      <div><span className="record">{a.entity || "OFAC sanctions list"}</span><span className="text-paper-3"> · {CONF_LABEL[["", "low", "moderate", "high"].indexOf(a.confidence)] ?? a.confidence} confidence · judged {a.judged_at}</span></div>
+                      <div className="text-paper-2">{a.basis}</div>
+                      <a className="break-all text-[12px]" href={a.evidence_url} target="_blank" rel="noopener">{a.evidence_url}</a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              <button onClick={copyCard}>Copy as evidence card</button>
+              <button onClick={() => { openDrawer(null); dispatchEvent(new CustomEvent("fl:lookup", { detail: row.address })); document.querySelector("#lookup")?.scrollIntoView({ behavior: "smooth" }); }}>Look up this address</button>
+            </div>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
