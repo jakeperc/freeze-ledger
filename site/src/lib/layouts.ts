@@ -39,8 +39,10 @@ export function laneOf(site: SiteJson, i: number) {
 
 export interface LayoutResult {
   positions: Float32Array; // xyz per event
-  /** `weight` ranks labels when they collide on screen (higher is kept) */
-  labels: { text: string; x: number; y: number; sub?: string; weight?: number }[];
+  /** `weight` ranks labels when they collide on screen (higher is kept); with
+   *  `r`, (x, y) is the centre of a cluster of that radius and the label is
+   *  placed beside it wherever it covers no other cluster */
+  labels: { text: string; x: number; y: number; sub?: string; weight?: number; r?: number }[];
   /** time scale used by the timeline/ring layouts, for axis ticks */
   tMin: number;
   tMax: number;
@@ -113,7 +115,7 @@ export function entitiesLayout(site: SiteJson, textRight: number | null = null):
   const labels: LayoutResult["labels"] = [];
   for (const g of packed.children ?? []) {
     const addrs = g.children?.length ?? 0;
-    labels.push({ text: g.data.name, x: g.x - W / 2 + OX, y: g.y - H / 2 + g.r + 0.35, sub: `${addrs.toLocaleString()} address${addrs === 1 ? "" : "es"}`, weight: addrs });
+    labels.push({ text: g.data.name, x: g.x - W / 2 + OX, y: g.y - H / 2, r: g.r, sub: `${addrs.toLocaleString()} address${addrs === 1 ? "" : "es"}`, weight: addrs });
     for (const leaf of g.children ?? []) {
       const idx: number[] = leaf.data.idx;
       idx.forEach((i, j) => {
@@ -149,8 +151,9 @@ export function chainsLayout(site: SiteJson, textRight: number | null = null): L
     pos[i * 3 + 1] = Math.sin(a) * r;
     pos[i * 3 + 2] = (hash(i, 7) - 0.5) * 0.6;
   }
-  // down the 6 o'clock radius, so the labels stack a full ring apart
-  const labels = LANES.map((l, li) => ({ text: l.label, x: CX + 0.15, y: -rOf(li) + 0.05, sub: undefined }));
+  // up the 12 o'clock radius, where every ring starts: a full ring apart, and
+  // over the first, quietest stretch of each history rather than its dots
+  const labels = LANES.map((l, li) => ({ text: l.label, x: CX + 0.15, y: rOf(li) + 0.05, sub: undefined }));
   return { positions: pos, labels, tMin, tMax };
 }
 
