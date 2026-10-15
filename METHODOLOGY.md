@@ -61,7 +61,7 @@ Two Lows never make a Moderate. Moderate rises to High only when a second primar
 1. **schema** — required columns; `event_id` canonical and unique; addresses in canonical form.
 2. **receipts** — every row's receipt is indexed; every raw file present still hashes to its recorded value and contains the row's transaction hash.
 3. **views** — `latest.json` equals the views recomputed from the CSVs; the CSV hashes it records still match.
-4. **chain** — a seeded random sample of rows per chain is re-fetched from a *different* public endpoint (`eth_getTransactionReceipt`, TronGrid `transactions/{id}/events`, `getTransaction`) and compared field by field.
+4. **chain** — a seeded random sample of rows per chain is re-fetched from a *different* public endpoint (`eth_getTransactionReceipt`, TronGrid `transactions/{id}/events`, `getTransaction`) and compared field by field. On Solana, public endpoints prune history at different depths; when the second endpoint answers `null` for a sampled transaction, the next endpoint is tried and the report names which endpoint served each sample.
 5. **sdn** — every address in 0xB10C's independent nightly extract of the SDN list is present in ours (tolerance 2%).
 
 The suite was made to fail on purpose during development by editing a stored address and by altering a raw receipt (`tests/test_store_export_verify.py`).
@@ -69,7 +69,7 @@ The suite was made to fail on purpose during development by editing a stored add
 ## 7. Known gaps
 
 - Polygon, Arbitrum, Avalanche and the other chains carrying Circle's FiatToken or Tether's contract are out of scope for v1.
-- Solana coverage before the first observed freeze authority depends on `authority_history` (see §2).
+- Solana coverage before the first observed freeze authority depends on `authority_history` (see §2). Concretely, the USDC freeze authority `7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar` is a 2-of-N token multisig created 2024-08-20, so USDC freezes before that date are not yet indexed. Solana USDT is not yet indexed: its authority's history is mostly unrelated transactions that reference it, so every one must be fetched to find the freezes.
 - An SDN address and a frozen address can coincide for an exchange deposit address shared by many users; the High rule's timing window reduces but does not eliminate this, which is why `basis` states the window and the SDN asset code.
 - Free public endpoints prune history and cap `eth_getLogs` ranges; the adaptive chunking and the second-endpoint re-derivation exist for this reason. On Ethereum and Base, any chunk that returns events is re-counted on an independent endpoint; a mismatch is re-fetched once, and if it persists the primary result is stored and the discrepancy is written to the run log for `verify.py` and the maintainer.
 - The SDN parser was validated against a fixture in the advanced-XML shape; its first real run should be spot-checked (ten rows) against https://sanctionssearch.ofac.treas.gov/ and any discrepancy filed as an issue.

@@ -38,8 +38,10 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Solana USDT is skipped until `backfill --chain solana --token USDT`
+      # has been run; drop the --skip then.
       - name: Index forward
-        run: python -m freeze_ledger run --max-calls ${{ inputs.max_calls || 1500 }} 2>&1 | tee run.log
+        run: python -m freeze_ledger run --skip solana:USDT --max-calls ${{ inputs.max_calls || 1500 }} 2>&1 | tee run.log
 
       - name: Refresh SDN extract
         continue-on-error: true

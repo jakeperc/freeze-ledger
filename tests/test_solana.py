@@ -106,3 +106,25 @@ def test_mint_without_freeze_authority_is_skipped_with_a_note(stores):
     rpc = FakeRpc({"getAccountInfo": lambda p: {"value": {"data": {"parsed": {"info": {"freezeAuthority": None}}}}}})
     stats = SolanaAdapter(mints=[USDC], rpc=rpc, call_sleep=0).run(cps, store, receipts, quiet)
     assert stats.events_seen == 0 and any("no freeze authority" in n for n in stats.notes)
+
+
+def test_backfill_token_filter_scopes_mints():
+    import pytest
+
+    from freeze_ledger.__main__ import _adapter
+
+    assert [m.token for m in _adapter("solana", ["USDC"]).mints] == ["USDC"]
+    assert len(_adapter("solana").mints) == len(SOLANA_MINTS)
+    with pytest.raises(SystemExit):
+        _adapter("solana", ["DAI"])
+    with pytest.raises(SystemExit):
+        _adapter("ethereum", ["USDC"])
+
+
+def test_run_skip_drops_one_token():
+    from freeze_ledger.__main__ import _run_tokens
+
+    assert _run_tokens("solana", {"solana:USDT"}) == ["USDC"]
+    assert _run_tokens("solana", set()) is None
+    assert _run_tokens("tron", {"solana:USDT"}) is None
+    assert _run_tokens("tron", {"tron:USDT"}) == []

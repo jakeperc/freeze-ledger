@@ -1,7 +1,7 @@
 """Command line: one command per stage of the pipeline.
 
-    python -m freeze_ledger run        [--chains ethereum,base,tron,solana] [--max-calls N]
-    python -m freeze_ledger backfill   --chain ethereum [--max-calls N]
+    python -m freeze_ledger run        [--chains ethereum,base,tron,solana] [--skip solana:USDT] [--max-calls N]
+    python -m freeze_ledger backfill   --chain ethereum [--token USDT] [--max-calls N]
     python -m freeze_ledger sdn
     python -m freeze_ledger attribute  [--no-federal-register]
     python -m freeze_ledger export     [--parquet]
@@ -29,20 +29,39 @@ def log(msg: str) -> None:
     print(f"{ts} {msg}", flush=True)
 
 
-def _adapter(chain: str):
+def _scoped(items, tokens: list[str] | None, chain: str):
+    if not tokens:
+        return None
+    picked = [i for i in items if i.chain == chain and i.token.upper() in tokens]
+    if not picked:
+        raise SystemExit(f"no {chain} entry for token(s) {','.join(tokens)}")
+    return picked
+
+
+def _adapter(chain: str, tokens: list[str] | None = None):
     if chain in ("ethereum", "base"):
         from .adapters.evm import EvmAdapter
 
+        if tokens:
+            raise SystemExit("--token is supported for tron and solana only")
         return EvmAdapter(chain)
     if chain == "tron":
         from .adapters.tron import TronAdapter
 
-        return TronAdapter()
+        return TronAdapter(contracts=_scoped(registry.TRON_CONTRACTS, tokens, chain))
     if chain == "solana":
         from .adapters.solana import SolanaAdapter
 
-        return SolanaAdapter()
+        return SolanaAdapter(mints=_scoped(registry.SOLANA_MINTS, tokens, chain))
     raise SystemExit(f"unknown chain {chain}")
+
+
+def _run_tokens(chain: str, skip: set[str]) -> list[str] | None:
+    """The tokens `run` indexes on `chain` after `--skip chain:TOKEN` entries."""
+    items = {"tron": registry.TRON_CONTRACTS, "solana": registry.SOLANA_MINTS}.get(chain)
+    if not items or not any(s.startswith(f"{chain}:") for s in skip):
+        return None
+    return [i.token.upper() for i in items if f"{chain}:{i.token.upper()}" not in skip]
 
 
 def _write_run_log(entries: list[dict], kind: str) -> None:
@@ -55,13 +74,18 @@ def _write_run_log(entries: list[dict], kind: str) -> None:
 def cmd_run(args) -> int:
     paths.ensure_dirs()
     chains = [c.strip() for c in args.chains.split(",") if c.strip()]
+    skip = {s.strip().lower().split(":")[0] + ":" + s.strip().split(":")[-1].upper() for s in args.skip.split(",") if ":" in s}
     cps, store, receipts = Checkpoints(), event_store(), Receipts()
     results = []
     failures = 0
     for chain in chains:
         t0 = time.time()
+        tokens = _run_tokens(chain, skip)
+        if tokens == []:
+            log(f"[{chain}] every token skipped")
+            continue
         try:
-            stats = _adapter(chain).run(cps, store, receipts, log, max_calls=args.max_calls)
+            stats = _adapter(chain, tokens).run(cps, store, receipts, log, max_calls=args.max_calls)
             d = stats.as_dict()
             d["seconds"] = round(time.time() - t0, 1)
             results.append(d)
@@ -80,7 +104,8 @@ def cmd_backfill(args) -> int:
     paths.ensure_dirs()
     cps, store, receipts = Checkpoints(), event_store(), Receipts()
     t0 = time.time()
-    stats = _adapter(args.chain).run(
+    tokens = [t.strip().upper() for t in args.token.split(",") if t.strip()] if args.token else None
+    stats = _adapter(args.chain, tokens).run(
         cps, store, receipts, log, backfill=True, max_calls=args.max_calls,
         from_cursor=args.from_block, to_cursor=args.to_block,
     )
@@ -172,10 +197,12 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("run", help="index forward from the checkpoints")
     p.add_argument("--chains", default=",".join(registry.all_chains()))
     p.add_argument("--max-calls", type=int, default=None, help="stop a chain after this many provider calls")
+    p.add_argument("--skip", default="", help="chain:TOKEN pairs not to index, e.g. solana:USDT (until it is backfilled)")
     p.set_defaults(fn=cmd_run)
 
     p = sub.add_parser("backfill", help="index a chain from its contract's first block (resumable)")
     p.add_argument("--chain", required=True, choices=registry.all_chains())
+    p.add_argument("--token", default=None, help="tron/solana only: index just these tokens, e.g. USDC")
     p.add_argument("--max-calls", type=int, default=None)
     p.add_argument("--from-block", type=int, default=None, help="EVM only: start here instead of the deployment block")
     p.add_argument("--to-block", type=int, default=None, help="EVM only: stop here (e.g. to fill a gap below a bootstrap checkpoint)")
