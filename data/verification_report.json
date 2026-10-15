@@ -1,24 +1,24 @@
 {
-  "verified_at": "2026-10-15T13:15:25Z",
+  "verified_at": "2026-10-15T17:02:36Z",
   "seed": 20261015,
-  "offline": true,
-  "events": 5376,
+  "offline": false,
+  "events": 6626,
   "failed": 0,
   "checks": [
     {
       "check": "schema.rows",
       "status": "ok",
-      "detail": "5376 rows, unique canonical event_ids"
+      "detail": "6626 rows, unique canonical event_ids"
     },
     {
       "check": "receipts.index",
       "status": "ok",
-      "detail": "all 5376 rows have an indexed receipt"
+      "detail": "all 6626 rows have an indexed receipt"
     },
     {
       "check": "receipts.hash",
       "status": "ok",
-      "detail": "9 raw file(s) re-hashed; 0 not present locally (size cap or release asset)"
+      "detail": "232 raw file(s) re-hashed; 0 not present locally (size cap or release asset)"
     },
     {
       "check": "receipts.binding",
@@ -28,17 +28,32 @@
     {
       "check": "views.latest",
       "status": "ok",
-      "detail": "20 derived fields match (events_public=5333, frozen_now=3591)"
+      "detail": "20 derived fields match (events_public=6582, frozen_now=3971)"
     },
     {
-      "check": "chain",
+      "check": "chain.ethereum",
+      "status": "ok",
+      "detail": "5 sampled rows re-derived from https://rpc.mevblocker.io"
+    },
+    {
+      "check": "chain.base",
+      "status": "ok",
+      "detail": "5 sampled rows re-derived from https://mainnet.base.org"
+    },
+    {
+      "check": "chain.tron",
       "status": "skipped",
-      "detail": "--offline"
+      "detail": "no rows"
+    },
+    {
+      "check": "chain.solana",
+      "status": "skipped",
+      "detail": "no rows"
     },
     {
       "check": "sdn.crosscheck",
-      "status": "skipped",
-      "detail": "--offline"
+      "status": "ok",
+      "detail": "475/475 addresses of the independent extract present in ours"
     }
   ]
 }
