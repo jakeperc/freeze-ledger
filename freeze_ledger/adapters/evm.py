@@ -313,11 +313,13 @@ class EvmAdapter(Adapter):
         if margin_lo is not None and last is not None:
             # Any stored event inside the re-read margin that the chain no
             # longer returns is a candidate removed log. It is reported, never
-            # silently deleted (see CHANGELOG policy).
+            # silently deleted (see CHANGELOG policy). A backfill that stops
+            # below the checkpoint only re-read up to its own end.
+            margin_hi = min(int(last), end)
             stored = [
                 r["event_id"]
                 for r in store.rows()
-                if r["chain"] == self.chain and margin_lo <= int(r["block_number"]) <= int(last)
+                if r["chain"] == self.chain and margin_lo <= int(r["block_number"]) <= margin_hi
             ]
             missing = sorted(set(stored) - seen_in_margin)
             if missing:

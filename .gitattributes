@@ -1,0 +1,2 @@
+# Raw chain responses are hashed byte-for-byte; never convert their line endings.
+evidence/raw/** -text

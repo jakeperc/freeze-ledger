@@ -12,3 +12,6 @@ evidence/sdn/
 # Scratch
 *.tmp
 data/*.tmp
+
+# Personal Claude Code settings
+.claude/settings.local.json

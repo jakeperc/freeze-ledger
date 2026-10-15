@@ -134,6 +134,16 @@ def test_backfill_locates_deployment_block_by_binary_search(stores):
     assert stats.cursor_from == "18999990"
 
 
+def test_backfill_below_checkpoint_does_not_flag_events_above_its_end(stores):
+    cps, store, _attr, receipts = stores
+    logs = [tether_log(ADDED, VICTIM, block=18_999_995), tether_log(ADDED, VICTIM, block=19_000_050, idx=3, tx="0x" + "ab" * 32)]
+    adapter = EvmAdapter("ethereum", contracts=[USDT], rpc=_fake_chain(logs), chunk=100)
+    adapter.run(cps, store, receipts, quiet, from_cursor=19_000_000, to_cursor=19_000_088)
+    stats = adapter.run(cps, store, receipts, quiet, backfill=True, to_cursor=19_000_000)
+    assert stats.events_new == 1
+    assert not any(n.startswith("REORG CHECK") for n in stats.notes)
+
+
 def test_adaptive_chunk_shrinks_on_provider_range_error(stores):
     from freeze_ledger.http import RpcError
 

@@ -145,10 +145,13 @@ SOLANA_MINTS: tuple[SolanaMint, ...] = (
 # verification suite uses a *different* endpoint from the one that indexed.
 
 DEFAULT_RPCS: dict[str, tuple[str, ...]] = {
+    # mevblocker and drpc still serve pre-merge receipts and logs, which
+    # verify.py needs for 2017-2022 rows; most public nodes have expired them.
     "ethereum": (
         "https://ethereum-rpc.publicnode.com",
+        "https://rpc.mevblocker.io",
+        "https://eth.drpc.org",
         "https://eth.llamarpc.com",
-        "https://cloudflare-eth.com",
     ),
     "base": (
         "https://mainnet.base.org",

@@ -147,7 +147,8 @@ def check_views(events: list[dict], attributions: list[dict], rep: Report) -> No
         rep.skip("views.latest", "data/latest.json not present (run `export`)")
         return
     published = json.loads(p.read_text(encoding="utf-8"))
-    recomputed = compute_views(events, attributions)
+    # Round-trip through JSON so tuples compare equal to the lists latest.json holds.
+    recomputed = json.loads(json.dumps(compute_views(events, attributions)))
     a, b = _strip_volatile(published), _strip_volatile(recomputed)
     diffs = [k for k in sorted(set(a) | set(b)) if a.get(k) != b.get(k)]
     if diffs:
@@ -269,7 +270,8 @@ def check_sdn(rep: Report) -> None:
     import csv
 
     with p.open(newline="", encoding="utf-8") as f:
-        ours = {r["address_norm"].lower() for r in csv.DictReader(f)}
+        # Same rule as below: only EVM hex is case-insensitive; base58 keeps case.
+        ours = {(a.lower() if a.startswith("0x") else a) for a in (r["address_norm"].strip() for r in csv.DictReader(f))}
     total = missing = 0
     for asset, url in registry.B10C_LISTS.items():
         try:
