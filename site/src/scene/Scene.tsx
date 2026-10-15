@@ -40,7 +40,7 @@ function Projector({ layouts, onProject }: { layouts: Record<string, LayoutResul
       for (let y = y0 + 1; y <= y1; y++) {
         const t = Date.UTC(y, 0, 1) / 1000;
         const x = -SCENE_W / 2 + 1.2 + ((t - L.tMin) / (L.tMax - L.tMin)) * (SCENE_W - 1.8);
-        ticks.push({ text: String(y), ...project(x, SCENE_H / 2 + 0.3, 0) });
+        ticks.push({ text: String(y), ...project(x, SCENE_H / 2 + 0.62, 0) });
       }
     }
     let hover: Projected["hover"] = null;

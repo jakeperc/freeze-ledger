@@ -27,6 +27,9 @@ interface State {
   chapter: number;
   setChapter: (c: number) => void;
   reducedMotion: boolean;
+  /** 0..1 share of the time span shown by the scrubber; 1 = everything */
+  timeCut: number;
+  setTimeCut: (v: number) => void;
 }
 
 const params = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
@@ -48,4 +51,6 @@ export const useStore = create<State>((set) => ({
   chapter: 0,
   setChapter: (chapter) => set({ chapter }),
   reducedMotion: typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches,
+  timeCut: 1,
+  setTimeCut: (timeCut) => set({ timeCut }),
 }));

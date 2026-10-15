@@ -130,6 +130,7 @@ export function Hero({ ledger }: { ledger: Ledger }) {
             </div>
           </div>
           <Legend colorMode={colorMode} />
+          <Scrubber ledger={ledger} />
         </div>
       </div>
 
@@ -151,6 +152,28 @@ export function Hero({ ledger }: { ledger: Ledger }) {
         ))}
       </div>
     </section>
+  );
+}
+
+/** Drag through time: events after the cut disappear, the count follows. */
+function Scrubber({ ledger }: { ledger: Ledger }) {
+  const cut = useStore((s) => s.timeCut);
+  const setCut = useStore((s) => s.setTimeCut);
+  const s = ledger.site;
+  const t0 = s.t[0], t1 = s.t[s.n - 1];
+  const at = t0 + (t1 - t0) * cut;
+  // events up to the cut, excluding issuer-internal rows (binary search on the sorted time column)
+  let lo = 0, hi = s.n;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (s.t[mid] <= at) lo = mid + 1; else hi = mid; }
+  const shown = lo;
+  return (
+    <div className="min-w-[14rem] md:ml-auto md:mr-8">
+      <div className="mb-1.5 flex items-baseline justify-between text-[11px] text-paper-3">
+        <span>Through</span>
+        <span className="mono text-paper-2">{new Date(at * 1000).toISOString().slice(0, 10)} · {shown.toLocaleString()} events</span>
+      </div>
+      <input type="range" min={0} max={1000} value={Math.round(cut * 1000)} onChange={(e) => setCut(Number(e.target.value) / 1000)} className="w-full" aria-label="Show events through a date" />
+    </div>
   );
 }
 
