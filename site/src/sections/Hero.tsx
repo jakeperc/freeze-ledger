@@ -12,7 +12,7 @@ import { normalizeAddress } from "../lib/chain";
 import { isWide, useStore, type ColorMode, type Layout } from "../lib/store";
 import { FieldFallback } from "../scene/FieldFallback";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
-import { scrollToEl } from "../lib/browser";
+import { isMac, scrollToEl } from "../lib/browser";
 
 // three.js is most of the page's weight; the chapters render without it
 const Scene = lazy(() => import("../scene/Scene").then((m) => ({ default: m.Scene })));
@@ -188,7 +188,7 @@ function Masthead({ className, onSearch }: { className: string; onSearch: () => 
         <a href="#verification" className="no-underline hover:text-paper">Verification</a>
         <a href="#method" className="no-underline hover:text-paper">Method</a>
         <button onClick={onSearch} className="flex items-center gap-2 border-rule-2 px-2 py-1 text-[12px]">
-          Search <kbd>⌘K</kbd>
+          Search <kbd>{isMac ? "⌘K" : "Ctrl K"}</kbd>
         </button>
       </nav>
     </header>
@@ -272,7 +272,7 @@ function MastheadLookup() {
     if (!addr) return;
     const u = new URL(location.href);
     u.searchParams.set("a", addr);
-    history.replaceState(null, "", u); // read by the lookup if it mounts after this
+    history.replaceState(history.state, "", u); // read by the lookup if it mounts after this
     dispatchEvent(new CustomEvent("fl:lookup", { detail: addr }));
     scrollToEl("#lookup");
     setQ("");

@@ -4,7 +4,7 @@
  *  frozen right now. */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { isEvmAddress, isTronAddress, liveStatus, normalizeAddress, type LiveStatus } from "../lib/chain";
 import { EXPLORER, recordLabel, type Chain, type Ledger } from "../lib/data";
 import { fmtCompactUsd, fmtDate, fmtDateTime, short } from "../lib/format";
@@ -25,8 +25,12 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
   const address = normalizeAddress(text);
   const view = useMemo(() => (address ? addressView(ledger, address) : null), [ledger, address]);
 
+  const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    const onLookup = (e: Event) => setText((e as CustomEvent<string>).detail);
+    const onLookup = (e: Event) => {
+      setText((e as CustomEvent<string>).detail);
+      input.current?.focus({ preventScroll: true }); // the caller scrolls here
+    };
     addEventListener("fl:lookup", onLookup);
     return () => removeEventListener("fl:lookup", onLookup);
   }, []);
@@ -35,7 +39,7 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
     setLive({ status: "idle", rows: [] });
     const url = new URL(location.href);
     if (address) url.searchParams.set("a", address); else url.searchParams.delete("a");
-    history.replaceState(null, "", url);
+    history.replaceState(history.state, "", url); // keeps an open receipt's history marker
   }, [address]);
 
   const check = async () => {
@@ -66,6 +70,7 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
         </p>
         <div className="mt-6 flex flex-col gap-2 md:flex-row">
           <input
+            ref={input}
             className="mono flex-1 text-[14px]"
             value={text}
             onChange={(e) => setText(e.target.value)}

@@ -71,3 +71,23 @@ export function eventRow(ledger: Ledger, i: number) {
 }
 
 export type EventRow = ReturnType<typeof eventRow>;
+
+/** `chain:tx:log`, the same id as freeze_events.csv's event_id. */
+export function eventId(ledger: Ledger, i: number) {
+  const s = ledger.site;
+  return `${s.chains[s.c[i]]}:${s.tx[i]}:${s.li[i]}`;
+}
+
+/** The event index for an event_id, or null. EVM hashes match in any case. */
+export function findEvent(ledger: Ledger, id: string): number | null {
+  const a = id.indexOf(":"), b = id.lastIndexOf(":");
+  if (a < 1 || b <= a) return null;
+  const chain = id.slice(0, a), tx = id.slice(a + 1, b), li = Number(id.slice(b + 1));
+  if (!Number.isInteger(li)) return null;
+  const s = ledger.site, txl = tx.toLowerCase();
+  for (let i = 0; i < s.n; i++) {
+    if (s.li[i] !== li || s.chains[s.c[i]] !== chain) continue;
+    if (s.tx[i] === tx || (tx.startsWith("0x") && s.tx[i].toLowerCase() === txl)) return s.internal[i] ? null : i;
+  }
+  return null;
+}

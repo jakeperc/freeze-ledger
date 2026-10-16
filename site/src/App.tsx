@@ -1,6 +1,7 @@
-import { Fragment, lazy, Suspense, useEffect, useRef, useState } from "react";
+import { Fragment, lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { loadLatest, loadLedger, loadSiteCore, type Latest, type SiteJson } from "./lib/data";
 import { fmtInt } from "./lib/format";
+import { findEvent } from "./lib/lookup";
 import { useStore } from "./lib/store";
 import { Hero } from "./sections/Hero";
 import { Lookup } from "./sections/Lookup";
@@ -100,6 +101,27 @@ export function App() {
     evs.forEach((ev) => addEventListener(ev, mark, { passive: true }));
     return () => evs.forEach((ev) => removeEventListener(ev, mark));
   }, []);
+  // the page behind an open receipt takes no focus or clicks; this must land
+  // before the drawer hands focus back to the row that opened it
+  useLayoutEffect(() => {
+    const main = document.querySelector("main");
+    if (main) main.inert = drawerOpen;
+  }, [drawerOpen]);
+
+  // ?e=<event_id> opens that receipt once the rows are in. The id comes off
+  // this entry first, so the drawer's own entry is the one Back leaves.
+  useEffect(() => {
+    if (!ledger) return;
+    const id = new URLSearchParams(location.search).get("e");
+    if (!id) return;
+    const u = new URL(location.href);
+    u.searchParams.delete("e");
+    const { fl: _fl, ...state } = (history.state ?? {}) as Record<string, unknown>;
+    history.replaceState(Object.keys(state).length ? state : null, "", u);
+    const i = findEvent(ledger, id);
+    if (i !== null) useStore.getState().openDrawer({ kind: "event", index: i });
+  }, [ledger]);
+
   useEffect(() => {
     if (!ledger) return;
     const idle = (window as { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1500));
@@ -141,7 +163,6 @@ export function App() {
             <Guard id="screen" title={TITLE.screen}><Screen ledger={ledger} /></Guard>
             <div className="rule mx-5 md:mx-8" />
             <Guard id="method" title={TITLE.method}><Method ledger={ledger} /></Guard>
-            {mounted.drawer && <ErrorBoundary fallback={null}><Suspense fallback={null}><Drawer ledger={ledger} /></Suspense></ErrorBoundary>}
           </>
         ) : rowsFailed ? (
           <p className="px-5 py-16 text-paper-2 md:px-8" role="alert">
@@ -167,6 +188,7 @@ export function App() {
           ))
         )}
       </main>
+      {ledger && mounted.drawer && <ErrorBoundary fallback={null}><Suspense fallback={null}><Drawer ledger={ledger} /></Suspense></ErrorBoundary>}
       {mounted.palette && <ErrorBoundary fallback={null}><Suspense fallback={null}><Palette ledger={ledger} /></Suspense></ErrorBoundary>}
     </>
   );

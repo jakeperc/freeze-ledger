@@ -18,13 +18,8 @@ export function Palette({ ledger }: { ledger: Ledger | null }) {
   const openDrawer = useStore((s) => s.openDrawer);
   const [q, setQ] = useState("");
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    addEventListener("keydown", onKey);
-    return () => removeEventListener("keydown", onKey);
-  }, [setOpen]);
+  // each opening starts empty
+  useEffect(() => { if (!open) setQ(""); }, [open]);
 
   const go = (hash: string) => { setOpen(false); scrollToEl(hash); };
   const toTop = () => scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
@@ -32,17 +27,27 @@ export function Palette({ ledger }: { ledger: Ledger | null }) {
   const matches = ledger && q.length >= 4 && !addr ? [...ledger.byAddress.keys()].filter((a) => a.toLowerCase().includes(q.toLowerCase())).slice(0, 6) : [];
   const lookup = (a: string) => {
     setOpen(false);
-    const u = new URL(location.href); u.searchParams.set("a", a); history.replaceState(null, "", u);
+    const u = new URL(location.href); u.searchParams.set("a", a); history.replaceState(history.state, "", u);
     dispatchEvent(new CustomEvent("fl:lookup", { detail: a }));
     scrollToEl("#lookup");
   };
 
-  if (!open) return null;
+  // a modal dialog (focus trapped and returned, page scroll locked, Esc and
+  // the scrim close it); on phones it sits at the top, clear of the keyboard
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center bg-ink/70 px-4 pt-[12vh]" onClick={() => setOpen(false)}>
-      <Command label="Command palette" className="w-full max-w-[36rem] border border-rule-2 bg-ink" onClick={(e) => e.stopPropagation()} shouldFilter={!addr}>
-        <Command.Input autoFocus value={q} onValueChange={setQ} placeholder="Type a command, or paste an address" className="w-full border-0 border-b border-rule-2 bg-transparent px-4 py-3 text-[14px] outline-none" />
-        <Command.List className="panel max-h-[50vh] overflow-y-auto p-2 text-[13.5px]">
+    <Command.Dialog
+      open={open}
+      onOpenChange={setOpen}
+      label="Command palette"
+      shouldFilter={!addr}
+      overlayClassName="fixed inset-0 z-[60] bg-ink/70"
+      contentClassName="fixed inset-x-4 top-4 z-[61] mx-auto max-w-[36rem] border border-rule-2 bg-ink sm:top-[12vh]"
+    >
+        <div className="flex items-center border-b border-rule-2">
+          <Command.Input autoFocus value={q} onValueChange={setQ} placeholder="Type a command, or paste an address" className="min-w-0 flex-1 border-0 bg-transparent px-4 py-3 text-[14px] outline-none" />
+          <button className="mr-2 shrink-0 sm:hidden" onClick={() => setOpen(false)}>Close</button>
+        </div>
+        <Command.List className="panel max-h-[min(50vh,calc(100dvh-8rem))] overflow-y-auto p-2 text-[13.5px]">
           <Command.Empty className="px-3 py-3 text-paper-3">Nothing matches.</Command.Empty>
           {addr && (
             <Command.Group heading="Address" className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:text-paper-3">
@@ -76,8 +81,7 @@ export function Palette({ ledger }: { ledger: Ledger | null }) {
             {ledger && <Item onSelect={() => { setOpen(false); const s = ledger.site; let i = s.n - 1; while (i > 0 && s.internal[i]) i--; openDrawer({ kind: "event", index: i }); }}>Show the newest receipt</Item>}
           </Command.Group>
         </Command.List>
-      </Command>
-    </div>
+    </Command.Dialog>
   );
 }
 
