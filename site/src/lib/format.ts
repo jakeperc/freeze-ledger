@@ -1,3 +1,9 @@
+/** One CSV field, quoted only when it has to be (RFC 4180). */
+export const csvCell = (v: string | number | boolean) => {
+  const s = String(v);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+
 export const fmtInt = (n: number | null | undefined) =>
   n === null || n === undefined || Number.isNaN(n) ? "—" : Math.round(n).toLocaleString("en-US");
 
