@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { Ledger } from "./data";
 
-export type Layout = "timeline" | "entities" | "chains";
+export type Layout = "timeline" | "entities";
 export type ColorMode = "chain" | "action" | "record";
 
 export interface Drawer {
@@ -41,7 +41,7 @@ export const isWide = () => typeof matchMedia !== "undefined" && matchMedia(WIDE
 export const TEXT_COLUMN_PX = 600;
 
 const params = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
-const initialLayout = (["timeline", "entities", "chains"].includes(params.get("hero") ?? "") ? params.get("hero") : "timeline") as Layout;
+const initialLayout = (params.get("hero") === "entities" ? "entities" : "timeline") as Layout;
 
 export const useStore = create<State>((set) => ({
   ledger: null,

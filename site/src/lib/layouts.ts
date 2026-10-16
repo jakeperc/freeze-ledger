@@ -43,9 +43,11 @@ export interface LayoutResult {
    *  `r`, (x, y) is the centre of a cluster of that radius and the label is
    *  placed beside it wherever it covers no other cluster */
   labels: { text: string; x: number; y: number; sub?: string; weight?: number; r?: number }[];
-  /** time scale used by the timeline/ring layouts, for axis ticks */
+  /** time scale used by the timeline layout, for axis ticks */
   tMin: number;
   tMax: number;
+  /** hairlines between timeline lanes: y in scene units, spanning x0..x1 */
+  rules?: { y: number; x0: number; x1: number }[];
 }
 
 export function timelineLayout(site: SiteJson): LayoutResult {
@@ -54,7 +56,10 @@ export function timelineLayout(site: SiteJson): LayoutResult {
   const tMin = site.t[0], tMax = site.t[n - 1];
   const x = scaleLinear().domain([tMin, tMax]).range([-SCENE_W / 2 + 1.2, SCENE_W / 2 - 0.6]);
   const counts = LANES.map((_, li) => countLane(site, li));
-  const weights = counts.map((c) => (c ? 1 : 0.28));
+  // lane height grows with the square root of its events, with a floor, so
+  // Tron's eleven thousand do not crush Solana's thirty out of sight
+  const most = Math.max(1, ...counts);
+  const weights = counts.map((c) => (c ? 0.45 + 0.55 * Math.sqrt(c / most) : 0.22));
   const total = weights.reduce((a, b) => a + b, 0);
   const laneTop: number[] = [], laneH: number[] = [];
   let yCursor = SCENE_H / 2;
@@ -62,16 +67,17 @@ export function timelineLayout(site: SiteJson): LayoutResult {
   const laneY = (l: number) => laneTop[l] - laneH[l] / 2;
   for (let i = 0; i < n; i++) {
     const l = laneOf(site, i);
-    const jy = (hash(i, 1) - 0.5) * laneH[l] * 0.78;
+    const jy = (hash(i, 1) - 0.5) * laneH[l] * 0.72;
     pos[i * 3] = x(site.t[i]);
     pos[i * 3 + 1] = laneY(l) + jy;
     pos[i * 3 + 2] = (hash(i, 2) - 0.5) * 1.2;
   }
   const labels = LANES.map((l, li) => {
     const count = counts[li];
-    return { text: l.label, x: SCENE_W / 2 - 0.6, y: laneTop[li] - 0.3, sub: count ? `${count.toLocaleString()} events` : "not yet indexed" };
+    return { text: l.label, x: SCENE_W / 2 - 0.6, y: laneTop[li] - 0.3, sub: count ? `${count.toLocaleString()} events` : "no events indexed" };
   });
-  return { positions: pos, labels, tMin, tMax };
+  const rules = laneTop.slice(1).map((y) => ({ y, x0: -SCENE_W / 2 + 1.0, x1: SCENE_W / 2 - 0.4 }));
+  return { positions: pos, labels, tMin, tMax, rules };
 }
 
 function countLane(site: SiteJson, li: number) {
@@ -88,7 +94,7 @@ export function entitiesLayout(site: SiteJson, textRight: number | null = null):
   const n = site.n;
   const pos = new Float32Array(n * 3);
   // first index per (chain, address)
-  const addrKey = (i: number) => `${site.c[i]}|${site.addr[i]}`;
+  const addrKey = (i: number) => `${site.c[i]}|${site.aid[i]}`;
   const groups = new Map<number, Map<string, number[]>>(); // ent -> addrKey -> indices
   // addresses that only ever appear as released (their freeze predates coverage) get their own group
   const RELEASED_ONLY = -2;
@@ -130,33 +136,6 @@ export function entitiesLayout(site: SiteJson, textRight: number | null = null):
   return { positions: pos, labels, tMin: site.t[0], tMax: site.t[n - 1] };
 }
 
-/** Rings: one ring per lane, angle = time, so each chain's whole history is
- *  a clock face and the busiest rail is obvious at a glance. */
-export function chainsLayout(site: SiteJson, textRight: number | null = null): LayoutResult {
-  const n = site.n;
-  const pos = new Float32Array(n * 3);
-  const tMin = site.t[0], tMax = site.t[n - 1];
-  const ang = scaleLinear().domain([tMin, tMax]).range([Math.PI * 0.5, Math.PI * 0.5 - Math.PI * 1.92]);
-  const rings = LANES.length;
-  const [x0, x1] = fieldSpan(textRight); // the text column may sit to the left
-  const CX = (x0 + x1) / 2;
-  const rMax = Math.min(SCENE_H / 2 - 0.2, (x1 - x0) / 2), rMin = rMax * 0.25;
-  const rOf = (l: number) => rMax - (l * (rMax - rMin)) / (rings - 1);
-  const band = ((rMax - rMin) / (rings - 1)) * 0.5;
-  for (let i = 0; i < n; i++) {
-    const l = laneOf(site, i);
-    const r = rOf(l) + (hash(i, 6) - 0.5) * band;
-    const a = ang(site.t[i]);
-    pos[i * 3] = CX + Math.cos(a) * r;
-    pos[i * 3 + 1] = Math.sin(a) * r;
-    pos[i * 3 + 2] = (hash(i, 7) - 0.5) * 0.6;
-  }
-  // up the 12 o'clock radius, where every ring starts: a full ring apart, and
-  // over the first, quietest stretch of each history rather than its dots
-  const labels = LANES.map((l, li) => ({ text: l.label, x: CX + 0.15, y: rOf(li) + 0.05, sub: undefined }));
-  return { positions: pos, labels, tMin, tMax };
-}
-
 /** Horizontal span, in scene units, left for a layout that should not sit
  *  under the chapter text: right of `textRight` when the text floats over the
  *  field, the whole width otherwise. */
@@ -169,7 +148,7 @@ function fieldSpan(textRight: number | null): [number, number] {
 /** `textRight`: scene x of the chapter text column's right edge, or null when
  *  the text does not float over the field. */
 export function computeLayouts(site: SiteJson, textRight: number | null = null) {
-  return { timeline: timelineLayout(site), entities: entitiesLayout(site, textRight), chains: chainsLayout(site, textRight) };
+  return { timeline: timelineLayout(site), entities: entitiesLayout(site, textRight) };
 }
 
 /** per-event colors for each color mode, as flat rgb */

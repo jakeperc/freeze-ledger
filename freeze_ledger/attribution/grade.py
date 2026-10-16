@@ -46,10 +46,17 @@ def grade(
     freeze_date: str,
     record_date: str,
     amount_matches: bool = False,
+    record_date_earliest: str = "",
 ) -> Grade:
     """
     source_class: ofac_sdn | federal_register | doj | court | issuer | explorer_label | press | tracker
     match_basis:  address | amount_date | date | secondary
+    record_date_earliest: when the record's date is only bounded (an SDN
+        address known to be listed on or before `record_date` but not exactly
+        when), the earliest it can be. High needs the freeze to be no earlier
+        than 30 days before the latest possible date; Moderate is certain only
+        when it is more than 30 days before the earliest. In between, the
+        record may postdate the freeze, so it is Moderate with that said.
     """
     fd, rd = _to_date(freeze_date), _to_date(record_date)
     delta = (fd - rd).days if (fd and rd) else None
@@ -61,9 +68,19 @@ def grade(
         if delta >= -PRE_RECORD_GRACE_DAYS:
             when = f"{delta} days after" if delta >= 0 else f"{-delta} days before"
             return Grade("high", f"exact address match in a primary record; freeze {when} the record date")
+        ed = _to_date(record_date_earliest) or rd
+        if ed > rd:
+            ed = rd
+        early = (fd - ed).days
+        if early < -PRE_RECORD_GRACE_DAYS:
+            by = f"{-early} days" if ed == rd else f"at least {-early} days"
+            return Grade(
+                "moderate",
+                f"exact address match in a primary record, but the freeze predates it by {by}: the record corroborates the actor, not the trigger",
+            )
         return Grade(
             "moderate",
-            f"exact address match in a primary record, but the freeze predates it by {-delta} days: the record corroborates the actor, not the trigger",
+            f"exact address match in a primary record, listed between {ed.isoformat()} and {rd.isoformat()}; the freeze on {fd.isoformat()} falls in that window, so the record may postdate it",
         )
 
     if match_basis == "address" and not primary:
