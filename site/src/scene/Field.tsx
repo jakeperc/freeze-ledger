@@ -113,7 +113,9 @@ export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHa
     const size = new Float32Array(n), delay = new Float32Array(n), hidden = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const act = site.actions[site.a[i]];
-      size[i] = act === "destroy" ? 2.4 : act === "unfreeze" ? 1.8 : 2.0;
+      // a destroyed balance is sized by its amount: $1k is a plain point, $87M about twice as wide
+      const amt = site.amt[i];
+      size[i] = act === "destroy" ? 1.9 + (amt && amt > 1000 ? 0.42 * Math.log10(amt / 1000) : 0) : act === "unfreeze" ? 1.8 : 2.0;
       if (site.conf[i] === 3) size[i] += 0.5;
       // delay follows time so the fold sweeps across the picture
       delay[i] = (site.t[i] - site.t[0]) / Math.max(1, site.t[n - 1] - site.t[0]);

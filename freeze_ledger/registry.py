@@ -193,6 +193,10 @@ B10C_LISTS = {
     "USDT": "https://raw.githubusercontent.com/0xB10C/ofac-sanctioned-digital-currency-addresses/lists/sanctioned_addresses_USDT.json",
     "TRX": "https://raw.githubusercontent.com/0xB10C/ofac-sanctioned-digital-currency-addresses/lists/sanctioned_addresses_TRX.json",
 }
+# The same extract's git history: one commit per night on which the list changed.
+# Walked by attribution/sdn_history.py to date each address's listing and removal.
+B10C_REPO = "https://github.com/0xB10C/ofac-sanctioned-digital-currency-addresses.git"
+B10C_BRANCH = "lists"
 FEDERAL_REGISTER_API = "https://www.federalregister.gov/api/v1/documents.json"
 
 

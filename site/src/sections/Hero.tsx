@@ -4,10 +4,11 @@
 
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { animate, motion, useMotionValue, useTransform } from "framer-motion";
+import { animate } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildChapters } from "../lib/copy";
-import type { Ledger } from "../lib/data";
+import type { Latest, SiteJson } from "../lib/data";
+import { normalizeAddress } from "../lib/chain";
 import { isWide, useStore, type ColorMode, type Layout } from "../lib/store";
 import { Scene } from "../scene/Scene";
 
@@ -16,7 +17,6 @@ gsap.registerPlugin(ScrollTrigger);
 const LAYOUTS: { id: Layout; label: string; hint: string }[] = [
   { id: "timeline", label: "Timeline", hint: "one lane per chain and token, left to right in time" },
   { id: "entities", label: "By record", hint: "clusters by the public record behind each address" },
-  { id: "chains", label: "Rings", hint: "one ring per chain and token, time around the clock" },
 ];
 const COLORS: { id: ColorMode; label: string }[] = [
   { id: "chain", label: "Chain" },
@@ -25,28 +25,33 @@ const COLORS: { id: ColorMode; label: string }[] = [
 ];
 
 function Figure({ text, active }: { text: string; active: boolean }) {
-  // numbers count up when their chapter arrives; text with letters just appears
-  const numeric = /^[\d,.]+$/.test(text.replace(/[$%]/g, ""));
+  // Numbers count up when their chapter arrives; text with letters just
+  // appears. The real value is always the element's text: the count-up is
+  // drawn over it as generated content, so a screen reader, a crawler, a link
+  // preview or a background tab (where animation frames never run) reads the
+  // number, never the "0" a count-up starts from.
+  const numeric = /^[\d,.]+[BMk]?$/.test(text.replace(/[$%]/g, ""));
   const target = numeric ? parseFloat(text.replace(/[^0-9.]/g, "")) : 0;
-  const mv = useMotionValue(0);
-  const shown = useTransform(mv, (v) => {
-    if (!numeric) return text;
-    const digits = text.includes(".") ? text.split(".")[1].replace(/[^0-9]/g, "").length : 0;
-    const s = v.toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits });
-    return text.replace(/[\d,.]+/, s);
-  });
+  const [shown, setShown] = useState<string | null>(null);
   const reduced = useStore((s) => s.reducedMotion);
   useEffect(() => {
-    if (!active) return;
-    if (!numeric || reduced) { mv.set(target); return; }
-    const c = animate(mv, target, { duration: 1.4, ease: [0.16, 1, 0.3, 1] });
-    return () => c.stop();
-  }, [active, target, numeric, reduced, mv]);
-  return <motion.span>{shown}</motion.span>;
+    if (!active || !numeric || reduced || document.visibilityState !== "visible") return;
+    const digits = text.includes(".") ? text.split(".")[1].replace(/[^0-9]/g, "").length : 0;
+    const fmt = (v: number) => text.replace(/[\d,.]+/, v.toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits }));
+    setShown(fmt(0));
+    const c = animate(0, target, { duration: 1.4, ease: [0.16, 1, 0.3, 1], onUpdate: (v) => setShown(fmt(v)), onComplete: () => setShown(null) });
+    return () => { c.stop(); setShown(null); };
+  }, [active, target, numeric, reduced, text]);
+  return (
+    <span className="relative inline-block">
+      <span style={shown === null ? undefined : { color: "transparent" }}>{text}</span>
+      {shown !== null && <span aria-hidden className="absolute inset-0 whitespace-nowrap before:content-[attr(data-v)]" data-v={shown} />}
+    </span>
+  );
 }
 
-export function Hero({ ledger }: { ledger: Ledger }) {
-  const chapters = useMemo(() => buildChapters(ledger.latest), [ledger]);
+export function Hero({ latest, site }: { latest: Latest; site: SiteJson | null }) {
+  const chapters = useMemo(() => buildChapters(latest), [latest]);
   const setLayout = useStore((s) => s.setLayout);
   const setColorMode = useStore((s) => s.setColorMode);
   const layout = useStore((s) => s.layout);
@@ -89,7 +94,9 @@ export function Hero({ ledger }: { ledger: Ledger }) {
   return (
     <section ref={root} className="relative" aria-label="The field">
       <div className="scene-pin z-20 overflow-hidden bg-ink wide:z-0">
-        <Scene site={ledger.site} />
+        {site && <Scene site={site} />}
+        {/* keeps the floating chapter text readable over the brightest points */}
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-[1] hidden w-[42rem] bg-gradient-to-r from-ink/90 via-ink/60 to-transparent wide:block" />
 
         {/* masthead */}
         <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between px-5 pt-4 md:px-8">
@@ -98,7 +105,7 @@ export function Hero({ ledger }: { ledger: Ledger }) {
             <div className="mt-1 text-[12px] text-paper-3">Every stablecoin issuer freeze, with its receipt</div>
           </div>
           <nav className="pointer-events-auto hidden items-center gap-5 text-[13px] text-paper-2 md:flex">
-            <a href="#lookup" className="no-underline hover:text-paper">Look up an address</a>
+            <MastheadLookup />
             <a href="#registry" className="no-underline hover:text-paper">Registry</a>
             <a href="#patterns" className="no-underline hover:text-paper">Patterns</a>
             <a href="#verification" className="no-underline hover:text-paper">Verification</a>
@@ -132,7 +139,7 @@ export function Hero({ ledger }: { ledger: Ledger }) {
             </div>
           </div>
           <Legend colorMode={colorMode} />
-          <Scrubber ledger={ledger} />
+          {site && <Scrubber site={site} />}
         </div>
       </div>
 
@@ -141,7 +148,7 @@ export function Hero({ ledger }: { ledger: Ledger }) {
           menu, the controls or the points */}
       <div className="relative z-10 wide:pointer-events-none wide:-mt-[100vh]">
         {chapters.map((c, i) => (
-          <div key={c.id} data-chapter={c.id} className="flex min-h-[calc(100dvh-var(--scene-h))] items-start px-5 pt-8 pb-10 md:px-8 wide:min-h-[100vh] wide:items-center wide:py-0">
+          <div key={c.id} data-chapter={c.id} className="flex min-h-[calc(100dvh-var(--scene-h))] items-start px-5 pt-8 pb-10 md:px-8 wide:min-h-[80vh] wide:items-center wide:py-0">
             <div className={`max-w-[34rem] transition-opacity duration-500 ${chapter === i ? "opacity-100" : "opacity-35"}`}>
               <div className="display text-[clamp(44px,9vw,124px)] text-paper tnum">
                 <Figure text={c.figure} active={chapter === i} />
@@ -160,10 +167,9 @@ export function Hero({ ledger }: { ledger: Ledger }) {
 }
 
 /** Drag through time: events after the cut disappear, the count follows. */
-function Scrubber({ ledger }: { ledger: Ledger }) {
+function Scrubber({ site: s }: { site: SiteJson }) {
   const cut = useStore((s) => s.timeCut);
   const setCut = useStore((s) => s.setTimeCut);
-  const s = ledger.site;
   const t0 = s.t[0], t1 = s.t[s.n - 1];
   const at = t0 + (t1 - t0) * cut;
   // events up to the cut, excluding issuer-internal rows (binary search on the sorted time column)
@@ -197,5 +203,34 @@ function Legend({ colorMode }: { colorMode: ColorMode }) {
         </span>
       ))}
     </div>
+  );
+}
+
+/** The page's first job is "is this address frozen?", so the question can be
+ *  asked from the masthead without scrolling past the chapters. */
+function MastheadLookup() {
+  const [q, setQ] = useState("");
+  const addr = normalizeAddress(q);
+  const go = () => {
+    if (!addr) return;
+    const u = new URL(location.href);
+    u.searchParams.set("a", addr);
+    history.replaceState(null, "", u); // read by the lookup if it mounts after this
+    dispatchEvent(new CustomEvent("fl:lookup", { detail: addr }));
+    document.querySelector("#lookup")?.scrollIntoView({ behavior: "smooth" });
+    setQ("");
+  };
+  return (
+    <form role="search" onSubmit={(e) => { e.preventDefault(); go(); }} className="flex items-center">
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Look up an address"
+        aria-label="Look up an address"
+        spellCheck={false}
+        autoComplete="off"
+        className={`mono w-[15rem] bg-ink/80 px-2.5 py-1 text-[12.5px] lg:w-[19rem] ${q && !addr ? "border-ember" : ""}`}
+      />
+    </form>
   );
 }

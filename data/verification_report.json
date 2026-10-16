@@ -1,5 +1,5 @@
 {
-  "verified_at": "2026-10-16T12:20:36Z",
+  "verified_at": "2026-10-16T12:22:51Z",
   "seed": 20261016,
   "offline": false,
   "events": 17854,
@@ -28,7 +28,7 @@
     {
       "check": "views.latest",
       "status": "ok",
-      "detail": "20 derived fields match (events_public=17774, frozen_now=11952)"
+      "detail": "24 derived fields match (events_public=17774, frozen_now=11952)"
     },
     {
       "check": "chain.ethereum",

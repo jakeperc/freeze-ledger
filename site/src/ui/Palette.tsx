@@ -62,7 +62,6 @@ export function Palette({ ledger }: { ledger: Ledger }) {
           <Command.Group heading="Arrange the field" className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:text-paper-3">
             <Item onSelect={() => { setLayout("timeline"); setOpen(false); scrollTo({ top: 0, behavior: "smooth" }); }}>Timeline</Item>
             <Item onSelect={() => { setLayout("entities"); setOpen(false); scrollTo({ top: 0, behavior: "smooth" }); }}>By record</Item>
-            <Item onSelect={() => { setLayout("chains"); setOpen(false); scrollTo({ top: 0, behavior: "smooth" }); }}>Rings</Item>
             <Item onSelect={() => { setColorMode("chain"); setOpen(false); }}>Color by chain</Item>
             <Item onSelect={() => { setColorMode("action"); setOpen(false); }}>Color by outcome</Item>
             <Item onSelect={() => { setColorMode("record"); setOpen(false); }}>Color by public record</Item>
@@ -71,7 +70,7 @@ export function Palette({ ledger }: { ledger: Ledger }) {
             <Item onSelect={() => { location.href = DATA_BASE + "freeze_events.csv"; }}>Download freeze_events.csv</Item>
             <Item onSelect={() => { location.href = DATA_BASE + "attributions.csv"; }}>Download attributions.csv</Item>
             <Item onSelect={() => { window.open("https://github.com/jakeperc/freeze-ledger", "_blank"); }}>Open the repository</Item>
-            <Item onSelect={() => { setOpen(false); openDrawer({ kind: "event", index: ledger.site.n - 1 }); }}>Show the newest receipt</Item>
+            <Item onSelect={() => { setOpen(false); const s = ledger.site; let i = s.n - 1; while (i > 0 && s.internal[i]) i--; openDrawer({ kind: "event", index: i }); }}>Show the newest receipt</Item>
           </Command.Group>
         </Command.List>
       </Command>

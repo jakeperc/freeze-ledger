@@ -1,3 +1,4 @@
+import { laneName } from "../lib/copy";
 import { DATA_BASE, type Ledger } from "../lib/data";
 import { fmtDate } from "../lib/format";
 
@@ -5,6 +6,7 @@ const REPO = "https://github.com/jakeperc/freeze-ledger";
 
 export function Method({ ledger }: { ledger: Ledger }) {
   const gen = ledger.latest.generated_at;
+  const open = Object.values(ledger.latest.coverage ?? {}).filter((c) => !c.complete);
   return (
     <section id="method" className="px-5 py-16 md:px-8 md:py-20">
       <div className="max-w-[72rem]">
@@ -19,14 +21,18 @@ export function Method({ ledger }: { ledger: Ledger }) {
           <div className="rule pt-4">
             <div className="text-[15px]">What a record means</div>
             <p className="mt-2 text-[13.5px] text-paper-2">
-              A public record is an OFAC SDN entry, Federal Register notice, DOJ filing or issuer statement that names the address, graded high, moderate or low with a sentence saying why it is not one level higher. "No public record found" means exactly that. Attributions are the author's reading of public records, not the issuer's stated reason.
+              A public record is an OFAC SDN entry, Federal Register notice, DOJ filing or issuer statement that names the address, graded high, moderate or low with a sentence saying why it is not one level higher. High needs the record to be public no later than 30 days after the freeze; a freeze earlier than that is Moderate, because the record names the actor but cannot have triggered it. "No public record found" means exactly that. Attributions are the author's reading of public records, not the issuer's stated reason.
             </p>
           </div>
           <div className="rule pt-4">
             <div className="text-[15px]">What is missing</div>
-            <p className="mt-2 text-[13.5px] text-paper-2">
-              Tron and Solana are not indexed yet; Ethereum USDT freezes before 2024 are not in; entity names and listing dates for the OFAC matches arrive with the full SDN parse. Each of these is stated where its number appears, and in <a href={`${REPO}/blob/main/METHODOLOGY.md`} target="_blank" rel="noopener">METHODOLOGY.md</a>.
-            </p>
+            <ul className="mt-2 list-disc space-y-1.5 pl-4 text-[13.5px] text-paper-2">
+              {open.map((c) => <li key={c.chain + c.token}>{laneName(c)}: {c.note || "not complete"}.</li>)}
+              <li>Polygon, Arbitrum, Avalanche and the other chains carrying these contracts are out of scope.</li>
+              <li>Attribution reads the OFAC list as it stands and as it stood. DOJ filings, court orders and issuer statements are added by hand, and few are in yet.</li>
+              <li>OFAC listing dates are known to the day only for addresses added after September 2022. Earlier ones are bounded, and graded no higher than the bounds allow.</li>
+            </ul>
+            <p className="mt-2 text-[12.5px] text-paper-3">The first line comes from the indexer's checkpoints, so it changes when the data does. The rest is in <a href={`${REPO}/blob/main/METHODOLOGY.md`} target="_blank" rel="noopener">METHODOLOGY.md</a>.</p>
           </div>
         </div>
 
@@ -38,6 +44,7 @@ export function Method({ ledger }: { ledger: Ledger }) {
               <a className="mono" href={DATA_BASE + "attributions.csv"} download>attributions.csv</a>
               <a className="mono" href={DATA_BASE + "evidence.csv"} download>evidence.csv</a>
               <a className="mono" href={DATA_BASE + "sdn_addresses.csv"} download>sdn_addresses.csv</a>
+              <a className="mono" href={DATA_BASE + "sdn_address_history.csv"} download>sdn_address_history.csv</a>
               <a className="mono" href={DATA_BASE + "latest.json"} download>latest.json</a>
               <a className="mono" href={REPO} target="_blank" rel="noopener">repository</a>
             </div>

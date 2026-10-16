@@ -1,46 +1,53 @@
 import type { Attribution, Ledger } from "./data";
 import { stateKey } from "./data";
 
+export interface AddressState {
+  chain: string;
+  token: string;
+  frozen: boolean;
+  /** start of the current frozen stretch */
+  since: number | null;
+  /** Solana: the frozen token account, when the lookup was for the wallet owning it */
+  account?: string;
+}
+
 export interface AddressView {
   address: string;
   events: number[]; // indices, time order
-  states: { chain: string; token: string; frozen: boolean; since: number | null }[];
+  states: AddressState[];
   attributions: Attribution[];
   chains: string[];
 }
 
+/** Everything the ledger holds for an address. On Solana the address can be
+ *  the wallet that owns a frozen token account: state and records are read
+ *  per token account, which is what the issuer froze. */
 export function addressView(ledger: Ledger, address: string): AddressView | null {
   const idx = ledger.byAddress.get(address);
   if (!idx) return null;
   const site = ledger.site;
-  const seen = new Map<string, { chain: string; token: string; frozen: boolean; since: number | null }>();
+  const states = new Map<string, AddressState>();
   for (const i of idx) {
-    const chain = site.chains[site.c[i]], token = site.tokens[site.k[i]];
-    const k = stateKey(chain, token, address);
-    const frozen = ledger.frozenNow.get(k) ?? false;
-    const cur = seen.get(k) ?? { chain, token, frozen, since: null };
-    cur.frozen = frozen;
-    if (site.actions[site.a[i]] !== "unfreeze") cur.since = cur.since === null ? site.t[i] : cur.since;
-    else cur.since = null;
-    seen.set(k, cur);
+    const chain = site.chains[site.c[i]], token = site.tokens[site.k[i]], held = site.addr[i];
+    const k = stateKey(chain, token, held);
+    const st = states.get(k) ?? { chain, token, frozen: false, since: null, ...(held !== address ? { account: held } : {}) };
+    // `since` is the start of the current frozen stretch, not the first ever freeze
+    if (site.actions[site.a[i]] === "unfreeze") st.since = null;
+    else if (st.since === null) st.since = site.t[i];
+    st.frozen = ledger.frozenNow.get(k) ?? false;
+    states.set(k, st);
   }
-  // `since` should be the start of the current frozen stretch, not the first ever freeze
-  for (const [k, st] of seen) {
-    if (!st.frozen) { st.since = null; continue; }
-    let since: number | null = null;
-    for (const i of idx) {
-      const chain = site.chains[site.c[i]], token = site.tokens[site.k[i]];
-      if (stateKey(chain, token, address) !== k) continue;
-      const a = site.actions[site.a[i]];
-      if (a === "unfreeze") since = null;
-      else if (since === null) since = site.t[i];
-    }
-    st.since = since;
-  }
+  for (const st of states.values()) if (!st.frozen) st.since = null;
   const attributions: Attribution[] = [];
+  const seen = new Set<string>();
+  for (const i of idx) {
+    const key = `${site.chains[site.c[i]]}|${site.addr[i]}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    for (const a of ledger.attributions.get(key) ?? []) attributions.push(a);
+  }
   const chains = [...new Set(idx.map((i) => site.chains[site.c[i]]))];
-  for (const c of chains) for (const a of ledger.attributions.get(`${c}|${address}`) ?? []) attributions.push(a);
-  return { address, events: idx, states: [...seen.values()], attributions, chains };
+  return { address, events: idx, states: [...states.values()], attributions, chains };
 }
 
 export function eventRow(ledger: Ledger, i: number) {
@@ -51,6 +58,7 @@ export function eventRow(ledger: Ledger, i: number) {
     token: s.tokens[s.k[i]],
     action: s.actions[s.a[i]],
     address: s.addr[i],
+    owner: s.owner[String(s.aid[i])] ?? null,
     amount: s.amt[i],
     time: s.t[i],
     tx: s.tx[i],

@@ -14,7 +14,8 @@ It is a dataset first, with a page on top. Every number is derived from a chain 
 | `data/attributions.csv` | Zero or more rows per frozen address linking it to a public record, with `confidence` (high / moderate / low), a `basis` sentence saying why it is not one level higher, the `evidence_url`, and the date the judgment was made. |
 | `data/evidence.csv` + `evidence/raw/` | The receipts: SHA-256 and location of every raw response a row was derived from. |
 | `data/latest.json` | Derived views the page reads: counts by chain and action, addresses frozen now, monthly series, attribution coverage, destroyed amounts, the registry of contracts, and file hashes. |
-| `data/sdn_addresses.csv` | The OFAC SDN list's digital-currency addresses with entity, program(s) and listing date, extracted from `sdn_advanced.xml`. |
+| `data/sdn_addresses.csv` | The OFAC SDN list's digital-currency addresses with entity, program(s) and the party's designation date, extracted from `sdn_advanced.xml`. |
+| `data/sdn_address_history.csv` | When each address was listed and, if it was, removed, read from the git history of the nightly SDN extract. Grading uses these dates, not the party's. |
 | `METHODOLOGY.md` | What counts as a freeze on each chain, what does not, how confidence is assigned, and the known gaps. |
 
 Schema for all three tables is in [METHODOLOGY.md](METHODOLOGY.md#schema).
@@ -102,7 +103,7 @@ Ethereum RPC   Base RPC   TronGrid   Solana RPC
 | **Low** | Secondary source only (explorer label, press, tracker), or date proximity alone. |
 | *unattributed* | No public record found after the standard search. Reported as a first-class number. |
 
-Two Lows never make a Moderate; Moderate becomes High only when a second primary source agrees. Every row's `basis` says why it is not one level higher. A changed judgment appends a row and marks the old one `superseded_by`.
+Two Lows never make a Moderate; Moderate becomes High only when a second primary source agrees. Every row's `basis` says why it is not one level higher. A changed judgment appends a row and marks the old one `superseded_by`. A record is dated by when it named the *address*, not when it first named the party: see [METHODOLOGY §5](METHODOLOGY.md#5-attribution).
 
 ## Adding a record by hand
 
@@ -120,13 +121,14 @@ address,chain,source_class,entity,program,record_date,evidence_url,match_basis,a
 
 ## Status
 
-As of 2026-10-15 (Ethereum + Base: Etherscan `getLogs` bootstrap plus the RPC backfill of pre-2024 USDT freezes; Tron: TronGrid backfill from the first event; Solana USDC: backfill of every freeze authority the mint has had; Solana USDT not yet run):
+As of 2026-10-16 (Ethereum + Base: Etherscan `getLogs` bootstrap plus the RPC backfill of pre-2024 USDT freezes; Tron: TronGrid backfill from the first event; Solana USDC: backfill of every freeze authority the mint has had; Solana USDT not yet run):
 
-- Events indexed: **17,767** public (80 issuer-internal rows kept and flagged)
-- Addresses frozen now: **11,945** (Tron USDT 7,952, Ethereum USDT 2,815, Ethereum USDC 653, Base USDC 503, Solana USDC 22)
+- Events indexed: **17,774** public (80 issuer-internal rows kept and flagged)
+- Addresses frozen now: **11,952** (Tron USDT 7,958, Ethereum USDT 2,816, Ethereum USDC 653, Base USDC 503, Solana USDC 22)
 - USDT destroyed after a freeze (all-time): **$1,402,320,590** (Ethereum $818,478,019, Tron $583,842,571)
-- Coverage: Ethereum USDT freezes, destroys and releases 2017-11-28 → 2026-10-14 (complete); Ethereum USDC freezes 2020-06-16 → 2026-10-12 (complete); Base USDC 2023-08-18 → 2026-10-08 (complete); Tron USDT freezes, destroys and releases 2020-06-26 → 2026-10-15 (complete); Solana USDC freezes and thaws 2022-11-11 → 2026-10-09 (complete: the history of all three freeze authorities the mint has had since it was created in 2020)
-- Attribution: **572** frozen addresses with a High attribution and **17** Moderate (frozen before their OFAC listing), from the full `sdn_advanced.xml` parse with entity names, programs and listing dates; **12,637** (95.5%) with no public record found yet
+- Coverage: Ethereum USDT freezes, destroys and releases 2017-11-28 → 2026-10-15 (complete); Ethereum USDC freezes 2020-06-16 → 2026-10-12 (complete); Base USDC 2023-08-18 → 2026-10-08 (complete); Tron USDT freezes, destroys and releases 2020-06-26 → 2026-10-15 (complete); Solana USDC freezes and thaws 2022-11-11 → 2026-10-09 (complete: the history of all three freeze authorities the mint has had since it was created in 2020)
+- Attribution: **715** frozen addresses with a High attribution and **59** Moderate (frozen before their address was listed, or inside a listing window that cannot rule that out), graded on each address's own listing date and including addresses since removed from the list; **12,459** (94.2%) with no public record found yet
+- OFAC listing to freeze, addresses listed after 2022-09 (median days): Circle 0 on Ethereum and Base; Tether 107 on Ethereum and the same day on Tron, where it froze 44 addresses a week or more before they were listed. When OFAC removed 90 addresses on 2025-03-21, both issuers released every one within two days
 
 ## Roadmap
 

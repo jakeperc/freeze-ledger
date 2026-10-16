@@ -1,5 +1,8 @@
-/** Loading the ledger. site.json is the compact columnar export; latest.json
- *  holds the derived views the page quotes. Both are written by
+/** Loading the ledger, smallest first. latest.json (the derived views the
+ *  page quotes) arrives in a blink and the chapters render from it alone;
+ *  site.json (the columns the scene draws) follows; site_ids.json (every
+ *  address and transaction hash, most of the bytes) last, and only then do
+ *  the lookup, registry and receipts appear. All three are written by
  *  `python -m freeze_ledger export` and checked by verify.py. */
 
 export type Chain = "ethereum" | "base" | "tron" | "solana";
@@ -17,9 +20,15 @@ export interface SiteJson {
   c: number[];
   k: number[];
   a: number[];
+  /** address id per event: index into site_ids.json `addrs` */
+  aid: number[];
+  /** filled from site_ids.json */
   addr: string[];
   amt: (number | null)[];
+  /** filled from site_ids.json */
   tx: string[];
+  /** address id -> wallet that owns the frozen Solana token account */
+  owner: Record<string, string>;
   li: number[];
   blk: number[];
   conf: number[]; // 0 none, 1 low, 2 moderate, 3 high
@@ -47,13 +56,25 @@ export interface Latest {
   by_issuer: Record<string, { events: number; freezes: number; unfreezes: number; destroys: number; frozen_addresses: number; released_addresses: number; currently_frozen: number; attributed_addresses: number; destroyed_total: string }>;
   multi_chain_addresses: number;
   multi_chain_pairs: Record<string, number>;
-  freeze_to_destroy_days: { n: number; p25: number; median: number; p75: number; max: number } | null;
-  freeze_to_release_days: { n: number; p25: number; median: number; p75: number; max: number } | null;
+  freeze_to_destroy_days: Quantiles | null;
+  freeze_to_release_days: Quantiles | null;
   sdn_screening: Record<string, number>;
+  sdn_listing_lag_days: Record<string, Quantiles & { within_2_days: number; within_7_days: number; before_listing: number; not_frozen: number }>;
+  sdn_delisted: {
+    removed_addresses: number;
+    removed_on: Record<string, number>;
+    lanes: Record<string, { frozen_when_removed: number; released_after_removal: number; still_frozen: number; median_days_after_removal: number | null }>;
+  };
+  currently_frozen_split: { balance_held: number; balance_destroyed: number };
+  coverage: Record<string, LaneCoverage>;
   files: Record<string, { sha256: string; rows?: number }>;
   registry: any[];
   checkpoints: Record<string, any>;
 }
+
+export interface Quantiles { n: number; p25?: number; median?: number; p75?: number; max?: number }
+
+export interface LaneCoverage { chain: Chain; token: Token; issuer: string; events: number; first: string | null; last: string | null; complete: boolean; note: string }
 
 export interface VerificationReport {
   verified_at: string;
@@ -68,7 +89,9 @@ export interface Ledger {
   site: SiteJson;
   latest: Latest;
   report: VerificationReport | null;
-  /** address -> indices of its events, in time order */
+  /** address -> indices of its events, in time order. On Solana the wallet
+   *  that owns a frozen token account is indexed too, so pasting the wallet
+   *  finds it. */
   byAddress: Map<string, number[]>;
   /** current state per (chain, token, address) key */
   frozenNow: Map<string, boolean>;
@@ -119,20 +142,46 @@ export function parseCSV(text: string): Record<string, string>[] {
   return rows.filter((r) => r.length === head.length).map((r) => Object.fromEntries(head.map((h, j) => [h, r[j]])));
 }
 
-export async function loadLedger(): Promise<Ledger> {
-  const [site, latest, report, attrText] = await Promise.all([
-    fetch(DATA_BASE + "site.json").then((r) => r.json() as Promise<SiteJson>),
-    fetch(DATA_BASE + "latest.json").then((r) => r.json() as Promise<Latest>),
+const getJson = <T,>(name: string) =>
+  fetch(DATA_BASE + name).then((r) => {
+    if (!r.ok) throw new Error(`${name}: HTTP ${r.status}`);
+    return r.json() as Promise<T>;
+  });
+
+/** The derived views: enough for every number in the chapters. */
+export const loadLatest = () => getJson<Latest>("latest.json");
+
+/** The columns the scene draws; addresses and hashes arrive later. */
+export async function loadSiteCore(): Promise<SiteJson> {
+  const core = await getJson<SiteJson>("site.json");
+  return { ...core, addr: [], tx: [], owner: {} };
+}
+
+type Ids = { addrs: string[]; tx: string[]; owner: Record<string, string> };
+let idsPromise: Promise<Ids> | null = null;
+/** Start the big download early; loadLedger picks it up. */
+export const prefetchIds = () => (idsPromise ??= getJson<Ids>("site_ids.json"));
+
+/** Everything else, merged into the core columns. */
+export async function loadLedger(latest: Latest, core: SiteJson): Promise<Ledger> {
+  const [ids, report, attrText] = await Promise.all([
+    prefetchIds(),
     fetch(DATA_BASE + "verification_report.json").then((r) => (r.ok ? (r.json() as Promise<VerificationReport>) : null)).catch(() => null),
     fetch(DATA_BASE + "attributions.csv").then((r) => (r.ok ? r.text() : "")).catch(() => ""),
   ]);
+  const site: SiteJson = { ...core, addr: core.aid.map((i) => ids.addrs[i]), tx: ids.tx, owner: ids.owner };
   const byAddress = new Map<string, number[]>();
   const frozenNow = new Map<string, boolean>();
+  const push = (key: string, i: number) => {
+    let list = byAddress.get(key);
+    if (!list) byAddress.set(key, (list = []));
+    list.push(i);
+  };
   for (let i = 0; i < site.n; i++) {
     const addr = site.addr[i];
-    let list = byAddress.get(addr);
-    if (!list) byAddress.set(addr, (list = []));
-    list.push(i);
+    push(addr, i);
+    const wallet = site.owner[String(site.aid[i])];
+    if (wallet && wallet !== addr) push(wallet, i);
     const key = stateKey(site.chains[site.c[i]], site.tokens[site.k[i]], addr);
     const action = site.actions[site.a[i]];
     frozenNow.set(key, action !== "unfreeze");
@@ -146,6 +195,15 @@ export async function loadLedger(): Promise<Ledger> {
     attributions.set(key, l);
   }
   return { site, latest, report, byAddress, frozenNow, attributions };
+}
+
+/** "OFAC SDN list, since removed" for a row whose listing was withdrawn. */
+export const REMOVED_MARK = "removed from the SDN list on";
+export function recordLabel(a: Pick<Attribution, "entity" | "basis" | "source_class">): string {
+  if (a.entity) return a.entity;
+  const m = a.basis.match(/removed from the SDN list on (\d{4}-\d{2}-\d{2})/);
+  if (m) return `OFAC SDN list, removed ${m[1]}`;
+  return a.source_class === "ofac_sdn" ? "OFAC SDN list" : a.source_class;
 }
 
 export const CHAIN_COLOR: Record<Chain, string> = { ethereum: "#8ea2ff", base: "#4f8cff", tron: "#ff6b6b", solana: "#8ee3c8" };
