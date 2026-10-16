@@ -62,3 +62,7 @@ export const useStore = create<State>((set) => ({
   timeCut: 1,
   setTimeCut: (timeCut) => set({ timeCut }),
 }));
+
+if (typeof matchMedia !== "undefined") {
+  matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", (e) => useStore.setState({ reducedMotion: e.matches }));
+}

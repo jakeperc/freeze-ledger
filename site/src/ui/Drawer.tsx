@@ -10,6 +10,7 @@ import { fmtDateTime, fmtInt, fmtUsd, short } from "../lib/format";
 import { eventRow } from "../lib/lookup";
 import { useStore } from "../lib/store";
 import { CopyButton } from "./CopyButton";
+import { scrollToEl } from "../lib/browser";
 
 const REPO = "https://github.com/jakeperc/freeze-ledger";
 
@@ -183,7 +184,7 @@ export function Drawer({ ledger }: { ledger: Ledger }) {
 
             <div className="mt-6 flex flex-wrap gap-2">
               <CopyButton text={card} label="Copy as evidence card" />
-              <button onClick={() => { openDrawer(null); dispatchEvent(new CustomEvent("fl:lookup", { detail: row.address })); document.querySelector("#lookup")?.scrollIntoView({ behavior: "smooth" }); }}>Look up this address</button>
+              <button onClick={() => { openDrawer(null); dispatchEvent(new CustomEvent("fl:lookup", { detail: row.address })); scrollToEl("#lookup"); }}>Look up this address</button>
             </div>
           </motion.aside>
         </>
