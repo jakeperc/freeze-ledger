@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { extractAddresses } from "../lib/chain";
-import type { Ledger } from "../lib/data";
+import { recordLabel, type Ledger } from "../lib/data";
 import { fmtDate, short } from "../lib/format";
 import { addressView } from "../lib/lookup";
 
@@ -27,7 +27,7 @@ export function Screen({ ledger }: { ledger: Ledger }) {
         r.address, r.inLedger, r.frozen.length > 0,
         `"${r.frozen.map((s) => `${s.token} ${s.chain}`).join("; ")}"`,
         `"${r.released.map((s) => `${s.token} ${s.chain}`).join("; ")}"`,
-        `"${r.record ? (r.record.entity || "OFAC sanctions list") : ""}"`, r.record?.confidence ?? "", r.events,
+        `"${r.record ? recordLabel(r.record).replace(/"/g, '""') : ""}"`, r.record?.confidence ?? "", r.events,
       ].join(","));
     }
     const blob = new Blob([lines.join("\n")], { type: "text/csv" });
@@ -67,7 +67,7 @@ export function Screen({ ledger }: { ledger: Ledger }) {
                       <td className="mono" title={r.address}>{short(r.address, 10, 6)}</td>
                       <td className={r.frozen.length ? "state-freeze" : r.inLedger ? "state-unfreeze" : "text-paper-3"}>{r.frozen.length ? "Frozen" : r.inLedger ? "Released" : "Not in ledger"}</td>
                       <td className="text-paper-2">{r.frozen.map((s) => `${s.token} on ${s.chain}${s.since ? ` since ${fmtDate(s.since)}` : ""}`).join("; ") || r.released.map((s) => `${s.token} on ${s.chain}`).join("; ")}</td>
-                      <td className={r.record ? "record" : "text-paper-3"}>{r.record ? `${r.record.entity || "OFAC sanctions list"} · ${r.record.confidence}` : r.inLedger ? "none found" : ""}</td>
+                      <td className={r.record ? "record" : "text-paper-3"}>{r.record ? `${recordLabel(r.record)} · ${r.record.confidence}` : r.inLedger ? "none found" : ""}</td>
                       <td className="mono text-right">{r.events || ""}</td>
                     </tr>
                   ))}

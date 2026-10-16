@@ -11,6 +11,8 @@ interface Projected {
   /** screen space; `r` is the on-screen radius of the cluster centred at (x, y) */
   labels: { text: string; sub?: string; weight?: number; x: number; y: number; r?: number }[];
   ticks: { text: string; x: number; y: number }[];
+  /** lane separators on screen: y and the x span */
+  rules: { y: number; x0: number; x1: number }[];
   hover: { x: number; y: number } | null;
 }
 
@@ -20,7 +22,6 @@ function Projector({ layouts, onProject }: { layouts: Record<string, LayoutResul
   const { camera, size } = useThree();
   const layout = useStore((s) => s.layout);
   const hovered = useStore((s) => s.hovered);
-  const ledger = useStore((s) => s.ledger);
   const frame = useRef(0);
   const v = useMemo(() => new THREE.Vector3(), []);
   const rotated = size.width < size.height;
@@ -48,12 +49,19 @@ function Projector({ layouts, onProject }: { layouts: Record<string, LayoutResul
         ticks.push({ text: String(y), ...project(x, SCENE_H / 2 + 0.62, 0) });
       }
     }
+    const rules: Projected["rules"] = [];
+    if (layout === "timeline" && !rotated) {
+      for (const r of L.rules ?? []) {
+        const a = project(r.x0, r.y, 0), b = project(r.x1, r.y, 0);
+        rules.push({ y: a.y, x0: a.x, x1: b.x });
+      }
+    }
     let hover: Projected["hover"] = null;
-    if (hovered !== null && ledger) {
+    if (hovered !== null) {
       const p = L.positions;
       hover = project(p[hovered * 3], p[hovered * 3 + 1], p[hovered * 3 + 2]);
     }
-    onProject({ labels, ticks, hover });
+    onProject({ labels, ticks, rules, hover });
   });
   return null;
 }
@@ -161,7 +169,7 @@ function placeLabels(labels: Projected["labels"], layout: string, container: HTM
 
 export function Scene({ site }: { site: SiteJson }) {
   const [layouts, setLayouts] = useState<Record<string, LayoutResult> | null>(null);
-  const [proj, setProj] = useState<Projected>({ labels: [], ticks: [], hover: null });
+  const [proj, setProj] = useState<Projected>({ labels: [], ticks: [], rules: [], hover: null });
   const onReady = useCallback((h: FieldHandle) => setLayouts(h.layouts), []);
   const hovered = useStore((s) => s.hovered);
   const layout = useStore((s) => s.layout);
@@ -195,6 +203,9 @@ export function Scene({ site }: { site: SiteJson }) {
             <div className="inline-block bg-ink/70 px-1 text-[12px] leading-tight text-paper-2">{l.text}</div>
             {l.sub && <div className="mono inline-block bg-ink/70 px-1 text-[10.5px] text-paper-3">{l.sub}</div>}
           </div>
+        ))}
+        {proj.rules.map((r, i) => (
+          <div key={i} className="absolute h-px bg-rule" style={{ left: r.x0, top: r.y, width: Math.max(0, r.x1 - r.x0) }} />
         ))}
         {proj.ticks.map((t) => (
           <div key={t.text} className="mono absolute text-[10.5px] text-paper-3" style={{ left: t.x, top: t.y, transform: "translate(-50%, 0)" }}>
