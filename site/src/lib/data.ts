@@ -67,7 +67,7 @@ export interface Latest {
   };
   currently_frozen_split: { balance_held: number; balance_destroyed: number };
   coverage: Record<string, LaneCoverage>;
-  files: Record<string, { sha256: string; rows?: number }>;
+  files: Record<string, { sha256: string; rows?: number; bytes?: number }>;
   registry: any[];
   checkpoints: Record<string, any>;
 }

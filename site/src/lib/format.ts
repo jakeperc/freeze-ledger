@@ -32,6 +32,9 @@ export const fmtDateTime = (unixOrIso: number | string) => {
   return d.toISOString().slice(0, 16).replace("T", " ") + " UTC";
 };
 
+export const fmtBytes = (n: number) =>
+  n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${Math.round(n / 1024)} KB` : `${(n / (1024 * 1024)).toFixed(1)} MB`;
+
 export const fmtPct = (x: number | null | undefined, digits = 1) =>
   x === null || x === undefined ? "—" : (x * 100).toFixed(digits) + "%";
 

@@ -302,12 +302,14 @@ export function normalizeAddress(s: string): string | null {
  *  and hashes can also be, so one counts only when it stands alone: a whole
  *  line, a CSV or TSV cell, or a quoted JSON string. */
 export function extractAddresses(text: string): string[] {
-  const found = new Set<string>();
-  for (const m of text.matchAll(/0x[0-9a-fA-F]{40}/g)) found.add(m[0].toLowerCase());
-  for (const m of text.matchAll(/\bT[1-9A-HJ-NP-Za-km-z]{33}\b/g)) found.add(m[0]);
+  // address -> where it first appears, so results come back in the order pasted
+  const found = new Map<string, number>();
+  const add = (a: string, at: number) => { if (!found.has(a)) found.set(a, at); };
+  for (const m of text.matchAll(/0x[0-9a-fA-F]{40}/g)) add(m[0].toLowerCase(), m.index ?? 0);
+  for (const m of text.matchAll(/\bT[1-9A-HJ-NP-Za-km-z]{33}\b/g)) add(m[0], m.index ?? 0);
   for (const m of text.matchAll(/(?:^|[\s,;\t"'\[])([1-9A-HJ-NP-Za-km-z]{32,44})(?=$|[\s,;\t"'\]])/gm)) {
     const a = m[1];
-    if (isSolanaAddress(a) && /\d/.test(a) && /[a-z]/.test(a) && /[A-Z]/.test(a)) found.add(a);
+    if (isSolanaAddress(a) && /\d/.test(a) && /[a-z]/.test(a) && /[A-Z]/.test(a)) add(a, (m.index ?? 0) + m[0].indexOf(a));
   }
-  return [...found];
+  return [...found.entries()].sort((x, y) => x[1] - y[1]).map(([a]) => a);
 }
