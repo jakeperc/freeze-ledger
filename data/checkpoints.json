@@ -21,7 +21,27 @@
   },
   "solana": {
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": {
+      "authorities": {
+        "3sNBr7kMccME5D55xNgsmYpZnzPgP2g12CixAajXypn6": {
+          "backfill_done": true,
+          "closed": true,
+          "last_signature": "5afAPFJqavnH6po33UU1CgxB7DaEixZoMK45jAiFD5Wx8EtemNUgAzxeXjwZ6CrT5UxYAbNEWSgGHGX8PoeTVNo1",
+          "last_slot": 285371061,
+          "oldest_signature": "23fvPZMvyjhzoVCahCV6D2ikV15WWkGeKgU94efbsawEWQCUpox4UqiwqBfnbDjGvErbCLbwom86jYqMtgFwEK5u",
+          "oldest_slot": 41559335
+        },
+        "5TYZChz7APFopR5QirD5of4rQj1p9AXxeSAg6JndBdGj": {
+          "backfill_done": true,
+          "closed": true,
+          "last_signature": "5Dh1kphF9fK6UCR8Pb7ePV1vbtMma9GZ6YZ2nHox3fcJQ21gmgfmZyfwAJbLpELdxtxpYoFV1UE93kctak1Nangn",
+          "last_slot": 457006668,
+          "oldest_signature": "SeJdkBYPFuoTMuPHoaCZ88LFd6oijWza7t4v4J8q2YHS3ikuLvaFo58i2ChapVWyCoQWUfuQSfQxzjueegmGFg8",
+          "oldest_slot": 41322376
+        }
+      },
       "authority_history": [
+        "5TYZChz7APFopR5QirD5of4rQj1p9AXxeSAg6JndBdGj",
+        "3sNBr7kMccME5D55xNgsmYpZnzPgP2g12CixAajXypn6",
         "7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar"
       ],
       "backfill_done": true,

@@ -120,17 +120,17 @@ address,chain,source_class,entity,program,record_date,evidence_url,match_basis,a
 
 ## Status
 
-As of 2026-10-15 (Ethereum + Base: Etherscan `getLogs` bootstrap plus the RPC backfill of pre-2024 USDT freezes; Tron: TronGrid backfill from the first event; Solana USDC: backfill of the current freeze authority; Solana USDT not yet run):
+As of 2026-10-15 (Ethereum + Base: Etherscan `getLogs` bootstrap plus the RPC backfill of pre-2024 USDT freezes; Tron: TronGrid backfill from the first event; Solana USDC: backfill of every freeze authority the mint has had; Solana USDT not yet run):
 
-- Events indexed: **17,760** public (80 issuer-internal rows kept and flagged)
-- Addresses frozen now: **11,938** (Tron USDT 7,952, Ethereum USDT 2,815, Ethereum USDC 653, Base USDC 503, Solana USDC 15)
+- Events indexed: **17,767** public (80 issuer-internal rows kept and flagged)
+- Addresses frozen now: **11,945** (Tron USDT 7,952, Ethereum USDT 2,815, Ethereum USDC 653, Base USDC 503, Solana USDC 22)
 - USDT destroyed after a freeze (all-time): **$1,402,320,590** (Ethereum $818,478,019, Tron $583,842,571)
-- Coverage: Ethereum USDT freezes, destroys and releases 2017-11-28 → 2026-10-14 (complete); Ethereum USDC freezes 2020-06-16 → 2026-10-12 (complete); Base USDC 2023-08-18 → 2026-10-08 (complete); Tron USDT freezes, destroys and releases 2020-06-26 → 2026-10-15 (complete); Solana USDC 2024-08-23 → 2026-10-09 (**partial**: only freezes signed by the current freeze authority, a multisig created 2024-08-20; earlier freezes are not yet indexed)
-- Attribution: **572** frozen addresses with a High attribution and **17** Moderate (frozen before their OFAC listing), from the full `sdn_advanced.xml` parse with entity names, programs and listing dates; **12,630** (95.5%) with no public record found yet
+- Coverage: Ethereum USDT freezes, destroys and releases 2017-11-28 → 2026-10-14 (complete); Ethereum USDC freezes 2020-06-16 → 2026-10-12 (complete); Base USDC 2023-08-18 → 2026-10-08 (complete); Tron USDT freezes, destroys and releases 2020-06-26 → 2026-10-15 (complete); Solana USDC freezes and thaws 2022-11-11 → 2026-10-09 (complete: the history of all three freeze authorities the mint has had since it was created in 2020)
+- Attribution: **572** frozen addresses with a High attribution and **17** Moderate (frozen before their OFAC listing), from the full `sdn_advanced.xml` parse with entity names, programs and listing dates; **12,637** (95.5%) with no public record found yet
 
 ## Roadmap
 
-Open work is tracked in [issues](https://github.com/jakeperc/freeze-ledger/issues): serving the page under jakepercy.com, Solana USDT and pre-2024 Solana USDC, and an in-browser SQL panel.
+Open work is tracked in [issues](https://github.com/jakeperc/freeze-ledger/issues): serving the page under jakepercy.com, Solana USDT, and an in-browser SQL panel.
 
 ## License and citation
 
