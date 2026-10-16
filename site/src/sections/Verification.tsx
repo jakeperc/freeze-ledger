@@ -11,7 +11,7 @@ export function Verification({ ledger }: { ledger: Ledger }) {
   const files = ledger.latest.files;
   return (
     <section id="verification" className="px-5 py-16 md:px-8 md:py-20">
-      <div className="max-w-[72rem]">
+      <div className="mx-auto max-w-[72rem]">
         <h2 className="display text-[34px] md:text-[44px]">Verification</h2>
         <p className="mt-2 max-w-[48rem] text-paper-2">
           Nothing is committed until <a href="https://github.com/jakeperc/freeze-ledger/blob/main/verify.py" target="_blank" rel="noopener">verify.py</a> re-derives it: the schema, every receipt's hash, the published views against a fresh recomputation, a seeded sample of rows re-fetched from a second public node, and the OFAC extract against an independent one. This is its last report.

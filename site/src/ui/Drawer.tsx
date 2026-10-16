@@ -9,6 +9,7 @@ import { CONF_LABEL, EXPLORER, recordLabel, type Chain, type Ledger } from "../l
 import { fmtDateTime, fmtInt, fmtUsd, short } from "../lib/format";
 import { eventRow } from "../lib/lookup";
 import { useStore } from "../lib/store";
+import { CopyButton } from "./CopyButton";
 
 const REPO = "https://github.com/jakeperc/freeze-ledger";
 
@@ -18,10 +19,9 @@ export function Drawer({ ledger }: { ledger: Ledger }) {
   const [re, setRe] = useState<{ status: "idle" | "running" | "done"; result?: Rederivation }>({ status: "idle" });
   const index = drawer?.kind === "event" ? drawer.index! : null;
 
-  const [copied, setCopied] = useState(false);
   const panel = useRef<HTMLElement>(null);
   const opener = useRef<Element | null>(null);
-  useEffect(() => { setRe({ status: "idle" }); setCopied(false); }, [index]);
+  useEffect(() => { setRe({ status: "idle" }); }, [index]);
   // focus moves into the receipt when it opens and back to what opened it when it closes
   useEffect(() => {
     if (index !== null) {
@@ -59,8 +59,8 @@ export function Drawer({ ledger }: { ledger: Ledger }) {
     setRe({ status: "done", result });
   };
 
-  const copyCard = () => {
-    if (!row || !receipt) return;
+  const card = () => {
+    if (!row || !receipt) return "";
     const lines = [
       `Freeze Ledger — event ${row.chain}:${row.tx}:${row.logIndex}`,
       `${row.action} · ${row.token} on ${row.chain} · ${fmtDateTime(row.time)} · block ${row.block}`,
@@ -70,7 +70,7 @@ export function Drawer({ ledger }: { ledger: Ledger }) {
       attributions.length ? `record ${attributions.map((a) => `${recordLabel(a)} (${a.confidence}): ${a.evidence_url}`).join(" | ")}` : "no public record found",
       `${REPO} · data as of ${ledger.latest.generated_at}`,
     ];
-    navigator.clipboard?.writeText(lines.join("\n")).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); });
+    return lines.join("\n");
   };
 
   return (
@@ -182,7 +182,7 @@ export function Drawer({ ledger }: { ledger: Ledger }) {
             </div>
 
             <div className="mt-6 flex flex-wrap gap-2">
-              <button onClick={copyCard} aria-live="polite">{copied ? "Copied" : "Copy as evidence card"}</button>
+              <CopyButton text={card} label="Copy as evidence card" />
               <button onClick={() => { openDrawer(null); dispatchEvent(new CustomEvent("fl:lookup", { detail: row.address })); document.querySelector("#lookup")?.scrollIntoView({ behavior: "smooth" }); }}>Look up this address</button>
             </div>
           </motion.aside>

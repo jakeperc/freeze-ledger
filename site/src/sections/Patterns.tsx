@@ -245,7 +245,7 @@ export function Patterns({ ledger }: { ledger: Ledger }) {
     ]);
   return (
     <section id="patterns" className="px-5 py-16 md:px-8 md:py-20">
-      <div className="max-w-[72rem]">
+      <div className="mx-auto max-w-[72rem]">
         <h2 className="display text-[34px] md:text-[44px]">Patterns</h2>
         <p className="mt-2 max-w-[48rem] text-paper-2">Counted from the rows below the field. {coverageSentence(l)}</p>
 

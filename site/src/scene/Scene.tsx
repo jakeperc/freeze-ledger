@@ -5,6 +5,7 @@ import type { SiteJson } from "../lib/data";
 import { SCENE_H, SCENE_W, type LayoutResult } from "../lib/layouts";
 import { isWide, TEXT_COLUMN_PX, useStore } from "../lib/store";
 import { Field, type FieldHandle } from "./Field";
+import { FIELD_LABEL } from "./FieldFallback";
 import { Tooltip } from "./Tooltip";
 
 interface Projected {
@@ -183,8 +184,9 @@ export function Scene({ site }: { site: SiteJson }) {
   const labels = placeLabels(proj.labels, layout, overlay.current, compact);
 
   return (
-    <div className="absolute inset-0" aria-hidden="false">
+    <div className="absolute inset-0" role="img" aria-label={FIELD_LABEL}>
       <Canvas
+        aria-hidden
         dpr={[1, 1.75]}
         camera={{ position: [0, 0, 14.5], fov: 48, near: 0.1, far: 100 }}
         gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}

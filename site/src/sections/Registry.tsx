@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CONF_LABEL, EXPLORER, type Chain, type Ledger } from "../lib/data";
 import { fmtCompactUsd, fmtDateTime, short } from "../lib/format";
+import { downloadBlob } from "../lib/browser";
 import { useStore } from "../lib/store";
 
 const PAGE = 80;
@@ -126,17 +127,14 @@ export function Registry({ ledger }: { ledger: Ledger }) {
         rec ? CONF_LABEL[s.conf[i]] : "",
       ].map(csvCell).join(","));
     }
-    const blob = new Blob([lines.join("\n") + "\n"], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `freeze-ledger-registry-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(`freeze-ledger-registry-${new Date().toISOString().slice(0, 10)}.csv`, new Blob([lines.join("\n") + "\n"], { type: "text/csv" }));
   };
 
   const sel = "text-[13px]";
   const lbl = "flex items-center gap-2 text-[12.5px] text-paper-3";
   return (
     <section id="registry" className="px-5 py-16 md:px-8 md:py-20">
-      <div className="max-w-[72rem]">
+      <div className="mx-auto max-w-[72rem]">
         <h2 className="display text-[34px] md:text-[44px]">Registry</h2>
         <p className="mt-2 max-w-[48rem] text-paper-2">Every event, {f.sort === "oldest" ? "oldest first" : f.sort === "amount" ? "largest amount first" : "newest first"}. Click a row for its receipt.</p>
         <div className="mt-6 flex flex-wrap items-center gap-2">
