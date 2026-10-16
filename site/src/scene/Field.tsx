@@ -25,6 +25,7 @@ const vert = /* glsl */ `
   uniform float uHover;
   uniform float uDim;
   uniform float uCut;
+  uniform float uBreath;
   varying vec3 vColor;
   varying float vAlpha;
   varying float vHot;
@@ -33,7 +34,7 @@ const vert = /* glsl */ `
     float t = ease(clamp((uProgress - aDelay * 0.45) / 0.55, 0.0, 1.0));
     vec3 p = mix(aFrom, aTo, t);
     p.z += sin(t * 3.14159) * 1.4;              // lift while travelling
-    p.y += sin(uTime * 0.6 + aDelay * 12.0) * 0.012; // barely-there breathing
+    p.y += sin(uTime * 0.6 + aDelay * 12.0) * 0.012 * uBreath; // barely-there breathing, off under reduced motion
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
     float hot = float(gl_VertexID) == uHover ? 1.0 : 0.0;
@@ -139,6 +140,7 @@ export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHa
       uHover: { value: -1 },
       uDim: { value: 0 },
       uCut: { value: 1.01 },
+      uBreath: { value: 1 },
     }),
     [gl],
   );
@@ -202,12 +204,25 @@ export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layout, colorMode]);
 
+  // under reduced motion the canvas renders on demand: ask for a frame
+  // whenever something the picture shows has changed
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => { invalidate(); }, [invalidate, layout, colorMode, hovered, cut, drawer, layouts, reduced]);
+
   useFrame((_, dt) => {
     uniforms.uTime.value += dt;
     uniforms.uHover.value = hovered ?? -1;
-    uniforms.uCut.value += ((cut >= 1 ? 1.01 : cut) - uniforms.uCut.value) * Math.min(1, dt * 10);
+    uniforms.uPixelRatio.value = Math.min(gl.getPixelRatio(), 2); // follows the window across monitors
+    uniforms.uBreath.value = reduced ? 0 : 1;
+    const wantCut = cut >= 1 ? 1.01 : cut;
     const wantDim = drawer?.kind === "address" ? 1 : 0;
-    uniforms.uDim.value += (wantDim - uniforms.uDim.value) * Math.min(1, dt * 6);
+    if (reduced) {
+      uniforms.uCut.value = wantCut;
+      uniforms.uDim.value = wantDim;
+    } else {
+      uniforms.uCut.value += (wantCut - uniforms.uCut.value) * Math.min(1, dt * 10);
+      uniforms.uDim.value += (wantDim - uniforms.uDim.value) * Math.min(1, dt * 6);
+    }
   });
 
   // --- pointer -------------------------------------------------------------

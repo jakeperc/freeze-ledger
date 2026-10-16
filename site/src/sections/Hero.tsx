@@ -5,14 +5,17 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { animate } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { buildChapters } from "../lib/copy";
 import { NONE_COLOR, type Latest, type SiteJson } from "../lib/data";
 import { normalizeAddress } from "../lib/chain";
 import { isWide, useStore, type ColorMode, type Layout } from "../lib/store";
 import { FieldFallback } from "../scene/FieldFallback";
-import { Scene } from "../scene/Scene";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
+import { scrollToEl } from "../lib/browser";
+
+// three.js is most of the page's weight; the chapters render without it
+const Scene = lazy(() => import("../scene/Scene").then((m) => ({ default: m.Scene })));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -122,7 +125,7 @@ export function Hero({ latest, site }: { latest: Latest; site: SiteJson | null }
 
       <div className="scene-pin z-20 overflow-hidden bg-ink wide:z-0">
         <div className="relative h-[var(--field-h)] wide:absolute wide:inset-0 wide:h-auto">
-          <ErrorBoundary fallback={<FieldFallback />}>{site && <Scene site={site} />}</ErrorBoundary>
+          <ErrorBoundary fallback={<FieldFallback />}><Suspense fallback={null}>{site && <Scene site={site} />}</Suspense></ErrorBoundary>
           {/* keeps the floating chapter text readable over the brightest points */}
           <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-[1] hidden w-[42rem] bg-gradient-to-r from-ink/90 via-ink/60 to-transparent wide:block" />
         </div>
@@ -271,7 +274,7 @@ function MastheadLookup() {
     u.searchParams.set("a", addr);
     history.replaceState(null, "", u); // read by the lookup if it mounts after this
     dispatchEvent(new CustomEvent("fl:lookup", { detail: addr }));
-    document.querySelector("#lookup")?.scrollIntoView({ behavior: "smooth" });
+    scrollToEl("#lookup");
     setQ("");
   };
   return (

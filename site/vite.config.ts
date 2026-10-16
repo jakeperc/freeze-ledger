@@ -13,11 +13,11 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    chunkSizeWarningLimit: 1200,
+    chunkSizeWarningLimit: 600, // three.js is lazy; anything this big on the critical path should warn
     rollupOptions: {
       output: {
         manualChunks: {
-          three: ["three", "@react-three/fiber", "@react-three/drei"],
+          three: ["three", "@react-three/fiber"],
           motion: ["gsap", "framer-motion"],
         },
       },

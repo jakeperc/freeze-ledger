@@ -5,7 +5,7 @@ import type { SiteJson } from "../lib/data";
 import { SCENE_H, SCENE_W, type LayoutResult } from "../lib/layouts";
 import { isWide, TEXT_COLUMN_PX, useStore } from "../lib/store";
 import { Field, type FieldHandle } from "./Field";
-import { FIELD_LABEL } from "./FieldFallback";
+import { FIELD_LABEL, FieldFallback } from "./FieldFallback";
 import { Tooltip } from "./Tooltip";
 
 interface Projected {
@@ -18,12 +18,13 @@ interface Projected {
 }
 
 /** Projects layout labels, time ticks and the hovered point into screen
- *  space a few times a second, so the DOM overlay can sit on the picture. */
+ *  space whenever one of them can have moved (layout, hover, size, camera),
+ *  so the DOM overlay sits on the picture without re-rendering every frame. */
 function Projector({ layouts, onProject }: { layouts: Record<string, LayoutResult> | null; onProject: (p: Projected) => void }) {
   const { camera, size } = useThree();
   const layout = useStore((s) => s.layout);
   const hovered = useStore((s) => s.hovered);
-  const frame = useRef(0);
+  const last = useRef<{ sig: string; layouts: unknown }>({ sig: "", layouts: null });
   const v = useMemo(() => new THREE.Vector3(), []);
   const project = (x: number, y: number, z = 0) => {
     v.set(x, y, z).project(camera);
@@ -31,8 +32,9 @@ function Projector({ layouts, onProject }: { layouts: Record<string, LayoutResul
   };
   useFrame(() => {
     if (!layouts) return;
-    frame.current++;
-    if (frame.current % 4 !== 0) return;
+    const sig = `${layout}|${hovered}|${size.width}x${size.height}|${camera.position.z.toFixed(4)}`;
+    if (sig === last.current.sig && layouts === last.current.layouts) return;
+    last.current = { sig, layouts };
     const L = layouts[layout];
     const labels = L.labels.map((l) => {
       const p = project(l.x, l.y, 0);
@@ -173,23 +175,53 @@ function placeLabels(labels: Projected["labels"], layout: string, container: HTM
   return out;
 }
 
+function webglSupported() {
+  try {
+    const c = document.createElement("canvas");
+    return !!(c.getContext("webgl2") || c.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
 export function Scene({ site }: { site: SiteJson }) {
   const [layouts, setLayouts] = useState<Record<string, LayoutResult> | null>(null);
   const [proj, setProj] = useState<Projected>({ labels: [], ticks: [], rules: [], hover: null });
   const onReady = useCallback((h: FieldHandle) => setLayouts(h.layouts), []);
   const hovered = useStore((s) => s.hovered);
   const layout = useStore((s) => s.layout);
+  const colorMode = useStore((s) => s.colorMode); // the legend's width moves the reserved controls box
+  const reduced = useStore((s) => s.reducedMotion);
+  const root = useRef<HTMLDivElement>(null);
   const overlay = useRef<HTMLDivElement>(null);
   const compact = (overlay.current?.clientWidth ?? Infinity) < COMPACT_W;
-  const labels = placeLabels(proj.labels, layout, overlay.current, compact);
+  const labels = useMemo(
+    () => placeLabels(proj.labels, layout, overlay.current, compact),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [proj, layout, compact, colorMode],
+  );
+
+  // no frames once the field has scrolled away; under reduced motion only
+  // when something changes (the field does not breathe or drift then)
+  const [onScreen, setOnScreen] = useState(true);
+  useEffect(() => {
+    const io = new IntersectionObserver(([e]) => setOnScreen(e.isIntersecting));
+    if (root.current) io.observe(root.current);
+    return () => io.disconnect();
+  }, []);
+  const supported = useMemo(webglSupported, []);
+  const [lost, setLost] = useState(false);
+  if (!supported || lost) return <FieldFallback />;
 
   return (
-    <div className="absolute inset-0" role="img" aria-label={FIELD_LABEL}>
+    <div ref={root} className="absolute inset-0" role="img" aria-label={FIELD_LABEL}>
       <Canvas
         aria-hidden
-        dpr={[1, 1.75]}
+        frameloop={!onScreen ? "never" : reduced ? "demand" : "always"}
+        dpr={[1, 1.5]}
         camera={{ position: [0, 0, 14.5], fov: 48, near: 0.1, far: 100 }}
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+        gl={{ antialias: true, alpha: true, powerPreference: "default" }}
+        onCreated={({ gl }) => gl.domElement.addEventListener("webglcontextlost", (e) => { e.preventDefault(); setLost(true); })}
         style={{ position: "absolute", inset: 0 }}
       >
         <Framing />

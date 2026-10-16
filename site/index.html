@@ -6,6 +6,9 @@
     <title>Freeze Ledger</title>
     <meta name="description" content="Every USDT and USDC issuer freeze on Ethereum, Base, Tron and Solana, read from the chain nightly and joined to the public record that explains it. Open dataset with a public verification suite." />
     <meta name="theme-color" content="#0d0d1a" />
+    <!-- the chapters need latest.json and the field needs site.json: start both before the scripts run -->
+    <link rel="preload" href="%BASE_URL%latest.json" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="%BASE_URL%site.json" as="fetch" crossorigin="anonymous" />
     <meta property="og:title" content="Freeze Ledger" />
     <meta property="og:description" content="Every stablecoin issuer freeze, read from the chain, joined to the public record, verified before publication." />
     <meta property="og:type" content="website" />
