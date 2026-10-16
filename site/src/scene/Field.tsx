@@ -212,17 +212,28 @@ export function Field({ site, onReady }: { site: SiteJson; onReady?: (h: FieldHa
 
   // --- pointer -------------------------------------------------------------
   const lastHover = useRef<number | null>(null);
+  // the hit radius is several pixels (Scene's Framing), so take the point
+  // nearest the pointer, not the first one along the ray
+  const nearest = (e: ThreeEvent<PointerEvent | MouseEvent>): number | null => {
+    let best: number | null = null, bestD = Infinity;
+    for (const h of e.intersections) {
+      if (h.object !== pointsRef.current || h.index === undefined || site.internal[h.index]) continue;
+      const d = h.distanceToRay ?? 0;
+      if (d < bestD) { bestD = d; best = h.index; }
+    }
+    return best;
+  };
   const onMove = (e: ThreeEvent<PointerEvent>) => {
     if (uniforms.uProgress.value < 0.98) return;
-    const idx = e.index ?? null;
+    const idx = nearest(e);
     if (idx !== null && site.internal[idx]) return;
     if (idx !== lastHover.current) { lastHover.current = idx; setHovered(idx); }
   };
   const onOut = () => { lastHover.current = null; setHovered(null); };
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     // open the point the tooltip is showing; the click's own ray can land on a neighbour
-    const index = lastHover.current ?? e.index;
-    if (index === undefined || site.internal[index]) return;
+    const index = lastHover.current ?? nearest(e);
+    if (index === null || site.internal[index]) return;
     e.stopPropagation();
     openDrawer({ kind: "event", index });
   };

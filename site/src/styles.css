@@ -98,18 +98,17 @@ a:hover {
   border-top: 1px solid var(--color-rule);
 }
 
-/* The scene is pinned while the chapters scroll. Stacked (not wide), it is a
-   band at the top and the chapters scroll beneath it; on tall windows wide
-   enough for the unrotated field the band is only as tall as the field needs,
-   which leaves the text more room. Chapters size themselves from --scene-h. */
+/* The scene is pinned while the chapters scroll. On wide landscape screens it
+   fills the window and the chapters float over it. Stacked, it is a band at
+   the top: the field, always wider than tall so it is never turned, with the
+   controls in a strip beneath it, and the chapters scroll under the band.
+   Small-viewport units keep the band still while a phone's browser bars
+   slide in and out. Hero measures the band into --scene-h when stacked;
+   chapters size themselves from it. */
 :root {
-  --scene-h: 56vh;
-  --scene-h: 56dvh;
-}
-@media (min-width: 768px) and (orientation: portrait) {
-  :root {
-    --scene-h: min(56dvh, 66vw);
-  }
+  --field-h: min(50vh, 58vw);
+  --field-h: min(50svh, 58vw);
+  --scene-h: calc(var(--field-h) + 88px);
 }
 @media (min-width: 768px) and (orientation: landscape) {
   :root {
@@ -120,7 +119,11 @@ a:hover {
 .scene-pin {
   position: sticky;
   top: 0;
-  height: var(--scene-h);
+}
+@media (min-width: 768px) and (orientation: landscape) {
+  .scene-pin {
+    height: var(--scene-h);
+  }
 }
 
 /* keyboard hint chip */
