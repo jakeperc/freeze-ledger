@@ -58,8 +58,12 @@ class SolanaMint:
     token: str
     mint: str  # Base58 mint address
     source: str
-    # The freeze authority is read from the mint account on every run and
-    # logged; it is deliberately not written here.
+    # The current freeze authority is read from the mint account on every run
+    # and logged; it is deliberately not written here. Earlier authorities are
+    # no longer readable from the mint, so the ones found on-chain are listed
+    # (oldest first, each with its setAuthority transaction) to seed the
+    # checkpoint's `authority_history`.
+    prior_freeze_authorities: tuple[str, ...] = ()
 
 
 # --- Tether's contract: Solidity 0.4.x, no indexed event parameters -------------
@@ -129,6 +133,16 @@ SOLANA_MINTS: tuple[SolanaMint, ...] = (
         token="USDC",
         mint="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
         source="https://developers.circle.com/stablecoins/usdc-contract-addresses",
+        prior_freeze_authorities=(
+            # initializeMint, slot 41323234 (tx 3J3ijbvsdedojbptNNm57mfB9gMeH6y5vF73bx5seGT8CS54fVUgRhvhZALfxXWuj6hRt3JXNP73caJVkTzVFPV5);
+            # handed off by setAuthority(freezeAccount), slot 41592684
+            # (tx 5i76veDqDPjMpVNmLqEUvMY98ef5oNeoe3Vw532qc3XMcvh28TWxNKKkuqMPW1Bjuspeq44XDP2VzcqBV5mP8m4p)
+            "5TYZChz7APFopR5QirD5of4rQj1p9AXxeSAg6JndBdGj",
+            # 2-of-3 token multisig; handed off to the current authority by
+            # setAuthority(freezeAccount), slot 285371061, 2024-08-23
+            # (tx 5afAPFJqavnH6po33UU1CgxB7DaEixZoMK45jAiFD5Wx8EtemNUgAzxeXjwZ6CrT5UxYAbNEWSgGHGX8PoeTVNo1)
+            "3sNBr7kMccME5D55xNgsmYpZnzPgP2g12CixAajXypn6",
+        ),
     ),
     SolanaMint(
         chain="solana",
@@ -179,6 +193,10 @@ B10C_LISTS = {
     "USDT": "https://raw.githubusercontent.com/0xB10C/ofac-sanctioned-digital-currency-addresses/lists/sanctioned_addresses_USDT.json",
     "TRX": "https://raw.githubusercontent.com/0xB10C/ofac-sanctioned-digital-currency-addresses/lists/sanctioned_addresses_TRX.json",
 }
+# The same extract's git history: one commit per night on which the list changed.
+# Walked by attribution/sdn_history.py to date each address's listing and removal.
+B10C_REPO = "https://github.com/0xB10C/ofac-sanctioned-digital-currency-addresses.git"
+B10C_BRANCH = "lists"
 FEDERAL_REGISTER_API = "https://www.federalregister.gov/api/v1/documents.json"
 
 

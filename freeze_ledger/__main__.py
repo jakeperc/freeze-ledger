@@ -122,12 +122,16 @@ def cmd_sdn(args) -> int:
     paths.ensure_dirs()
     from .attribution.sdn import download_and_parse, write_sdn_csv
 
+    if args.history_only:
+        _refresh_sdn_history()
+        return 0
     if args.independent:
         from .attribution.independent import fetch_rows
 
         rows = fetch_rows(log=log)
         out = write_sdn_csv(rows)
         log(f"[sdn] wrote {out} ({len(rows)} rows) from the independent extract; entity/date columns empty until the XML run")
+        _refresh_sdn_history()
         return 0
 
     dest = paths.evidence_dir() / "sdn" / "sdn_advanced.xml"
@@ -135,7 +139,19 @@ def cmd_sdn(args) -> int:
     Receipts().record_hash_only("sdn_xml", f"{registry.SDN_ADVANCED_XML} {utcnow_iso()[:10]}", sha, size)
     out = write_sdn_csv(rows)
     log(f"[sdn] wrote {out} ({len(rows)} rows); raw XML kept at {dest} (gitignored)")
+    _refresh_sdn_history()
     return 0
+
+
+def _refresh_sdn_history() -> None:
+    """Date each address's listing and removal from the nightly extract's git
+    history. Needs git and network; on failure the committed table stays."""
+    from .attribution import sdn_history
+
+    try:
+        sdn_history.refresh(log=log)
+    except Exception as e:  # noqa: BLE001 - keep the committed table and say so
+        log(f"[sdn:history] not refreshed ({e}); keeping {sdn_history.history_csv()}")
 
 
 def cmd_attribute(args) -> int:
@@ -210,6 +226,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("sdn", help="download and extract the OFAC SDN digital-currency addresses")
     p.add_argument("--independent", action="store_true", help="use 0xB10C's nightly address lists instead of sdn_advanced.xml (no entity/date)")
+    p.add_argument("--history-only", action="store_true", help="only refresh data/sdn_address_history.csv (address listing and removal dates)")
     p.set_defaults(fn=cmd_sdn)
 
     p = sub.add_parser("attribute", help="join frozen addresses to the public record and grade them")

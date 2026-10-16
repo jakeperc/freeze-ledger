@@ -1,8 +1,9 @@
 /** Chapter copy is built from latest.json so every sentence carries a number
  *  the verification suite has re-derived. Nothing here is typed by hand
- *  except the sentence frames, and each frame says what it is counting. */
+ *  except the sentence frames: what is or is not indexed comes from the
+ *  `coverage` block (read from the checkpoints), never from this file. */
 
-import type { Latest } from "./data";
+import type { Latest, LaneCoverage } from "./data";
 import { fmtCompactUsd, fmtDate, fmtInt, fmtPct } from "./format";
 import type { ColorMode, Layout } from "./store";
 
@@ -17,17 +18,42 @@ export interface Chapter {
 }
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-const chainsIndexed = (l: Latest) => Object.entries(l.coverage_span).filter(([, s]) => s.events > 0).map(([c]) => cap(c));
+export const listWords = (xs: string[]) =>
+  xs.length <= 1 ? xs.join("") : xs.length === 2 ? `${xs[0]} and ${xs[1]}` : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`;
+const monthYear = (d: string) => new Date(d + "T00:00:00Z").toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+export const laneName = (l: Pick<LaneCoverage, "chain" | "token">) => `${cap(l.chain)} ${l.token}`;
+
+/** One sentence on what is not covered yet, or that everything in scope is. */
+export function coverageSentence(l: Latest): string {
+  const lanes = Object.values(l.coverage ?? {});
+  const open = lanes.filter((c) => !c.complete);
+  if (!lanes.length) return "";
+  if (!open.length) return "Every chain and token in scope is indexed from its first freeze.";
+  const parts = open.map((c) => `${laneName(c)}: ${c.note || "not complete"}`);
+  const done = lanes.filter((c) => c.complete && c.first).map((c) => `${laneName(c)} from ${fmtDate(c.first!)}`);
+  return `${parts.join("; ")}. Indexed from the first freeze: ${listWords(done)}.`;
+}
+
+/** The busiest removal date in the SDN extract history, and how many left the list then. */
+export function mainDelisting(l: Latest): { date: string; count: number } | null {
+  const entries = Object.entries(l.sdn_delisted?.removed_on ?? {}).sort((a, b) => b[1] - a[1]);
+  return entries.length ? { date: entries[0][0], count: entries[0][1] } : null;
+}
 
 export function buildChapters(l: Latest): Chapter[] {
-  const chains = chainsIndexed(l);
-  const chainWord = chains.length === 1 ? chains[0] : chains.length === 2 ? `${chains[0]} and ${chains[1]}` : `${chains.slice(0, -1).join(", ")} and ${chains.at(-1)}`;
+  const lanes = Object.values(l.coverage ?? {}).filter((c) => c.events > 0);
+  const chains = [...new Set(lanes.map((c) => cap(c.chain)))];
   const cov = l.attribution_coverage;
   const tether = l.by_issuer.tether, circle = l.by_issuer.circle;
-  const usdtFreezeSpan = l.coverage_span.ethereum?.detail?.["USDT:freeze"];
   const destroyed = Object.values(l.destroyed_usdt_by_chain).reduce((a, b) => a + parseFloat(b), 0);
-  const screening = l.sdn_screening;
-  const circleEth = screening["circle:ethereum"], circleBase = screening["circle:base"], tetherEth = screening["tether:ethereum"];
+  const split = l.currently_frozen_split;
+  const lag = l.sdn_listing_lag_days ?? {};
+  const cEth = lag["circle:ethereum"], tEth = lag["tether:ethereum"], tTron = lag["tether:tron"];
+  const delist = mainDelisting(l);
+  const delistLanes = Object.values(l.sdn_delisted?.lanes ?? {});
+  const releasedAll = delistLanes.length > 0 && delistLanes.every((d) => d.released_after_removal === d.frozen_when_removed);
+  const slowest = Math.max(...delistLanes.map((d) => d.median_days_after_removal ?? 0), 0);
+  const onList = cov.high + cov.moderate + cov.low;
 
   const chapters: Chapter[] = [
     {
@@ -35,49 +61,58 @@ export function buildChapters(l: Latest): Chapter[] {
       layout: "timeline",
       colorMode: "action",
       figure: fmtInt(l.currently_frozen_total),
-      figureLabel: "addresses cannot move their dollars right now",
+      figureLabel: "addresses are frozen right now",
       lines: [
-        `Tether and Circle have frozen them on ${chainWord}, and have not released them.`,
-        `Every point in the field is one freeze, release, or destroyed balance, read from the chain: ${fmtInt(l.events_public)} so far.`,
-      ],
-      caveat: usdtFreezeSpan ? `Ethereum USDT freezes are indexed from ${fmtDate(usdtFreezeSpan.first)}; earlier ones arrive with the full backfill. Tron and Solana are not indexed yet.` : undefined,
+        split
+          ? `${fmtInt(split.balance_held)} still hold dollars they cannot move. On the other ${fmtInt(split.balance_destroyed)}, Tether destroyed the balance and the address stays blacklisted.`
+          : "",
+        `Tether and Circle froze them on ${listWords(chains)}. Every point in the field is one freeze, release or destroyed balance, read from the chain: ${fmtInt(l.events_public)} so far.`,
+      ].filter(Boolean),
+      caveat: coverageSentence(l) || undefined,
     },
     {
-      id: "two-instincts",
-      layout: "chains",
+      id: "destroyed",
+      layout: "timeline",
       colorMode: "action",
       figure: fmtCompactUsd(destroyed),
       figureLabel: "in USDT destroyed after a freeze",
       lines: [
         tether ? `Tether has zeroed frozen balances ${fmtInt(tether.destroys)} times and released ${fmtInt(tether.released_addresses)} addresses.` : "",
-        circle ? `Circle cannot destroy a balance; it has released ${fmtInt(circle.released_addresses)} of the ${fmtInt(circle.frozen_addresses)} addresses it froze.` : "",
-        l.freeze_to_destroy_days ? `From freeze to destruction the median wait is ${fmtInt(l.freeze_to_destroy_days.median)} days; from freeze to release, ${fmtInt(l.freeze_to_release_days?.median ?? 0)}.` : "",
+        circle ? `Circle's contract cannot destroy a balance. It has released ${fmtInt(circle.released_addresses)} of the ${fmtInt(circle.frozen_addresses)} addresses it froze.` : "",
+        l.freeze_to_destroy_days?.median !== undefined
+          ? `From freeze to destruction the median wait is ${fmtInt(l.freeze_to_destroy_days.median)} days; from freeze to release, ${fmtInt(l.freeze_to_release_days?.median ?? 0)}.`
+          : "",
       ].filter(Boolean),
+      caveat: "The larger points in orange are the destroyed balances, sized by amount.",
     },
     {
       id: "no-record",
       layout: "entities",
       colorMode: "record",
       figure: fmtPct(cov.unattributed_share, 0),
-      figureLabel: "of frozen addresses match no public record we can find",
+      figureLabel: "of the addresses ever frozen are named in no public record we can find",
       lines: [
-        `${fmtInt(cov.unattributed)} of ${fmtInt(cov.frozen_addresses)} frozen addresses have no OFAC listing, court filing, notice or issuer statement attached to them yet.`,
-        `${fmtInt(cov.high)} match the OFAC sanctions list exactly. The rest were frozen for reasons that are not public.`,
+        `That is ${fmtInt(cov.unattributed)} of ${fmtInt(cov.frozen_addresses)} addresses. ${fmtInt(onList)} are on the OFAC sanctions list, or were${delist ? `: ${fmtInt(l.sdn_delisted.removed_addresses)} have since been removed from it` : ""}.`,
+        "Tether says most of its freezes follow requests from law enforcement. Circle says it freezes when a court order or sanctions require it. Neither publishes the requests, so no public record names the rest.",
       ],
-      caveat: "Attribution so far uses the OFAC digital-currency address list only; DOJ filings and issuer statements are added by hand and will lower this share.",
+      caveat: "Attribution reads the OFAC list as it stands and as it stood. DOJ filings and court orders are added by hand and will lower this share.",
     },
     {
-      id: "screening",
+      id: "listing-to-freeze",
       layout: "timeline",
       colorMode: "record",
-      figure: circleEth !== undefined && tetherEth !== undefined ? `${fmtInt(circleEth)} vs ${fmtInt(tetherEth)}` : fmtInt(cov.high),
-      figureLabel: "OFAC-listed addresses frozen by Circle vs Tether on Ethereum",
+      figure: cEth?.median !== undefined && tEth?.median !== undefined ? `${fmtInt(Math.max(0, cEth.median))} vs ${fmtInt(tEth.median)}` : fmtInt(cov.high),
+      figureLabel: "days from an OFAC listing to the freeze on Ethereum, Circle vs Tether (median)",
       lines: [
-        circleEth !== undefined && circleBase !== undefined ? `Circle has frozen every one of the ${fmtInt(circleEth)} sanctioned EVM addresses on Ethereum and the same ${fmtInt(circleBase)} on Base.` : "",
-        tetherEth !== undefined ? `Tether has frozen ${fmtInt(tetherEth)} of them on Ethereum. One issuer screens the list; the other acts on requests.` : "",
-        l.multi_chain_addresses ? `${fmtInt(l.multi_chain_addresses)} addresses are frozen on more than one chain.` : "",
+        cEth ? `Circle froze ${fmtInt(cEth.within_2_days)} of ${fmtInt(cEth.n)} newly listed Ethereum addresses within two days of the listing.` : "",
+        tTron
+          ? `Tether is slower on Ethereum but not on Tron, where most of its freezes happen. There it froze ${fmtInt(tTron.within_2_days)} of ${fmtInt(tTron.n)} listed addresses within two days, and ${fmtInt(tTron.before_listing)} a week or more before OFAC listed them.`
+          : "",
+        delist && releasedAll
+          ? `When OFAC took ${fmtInt(delist.count)} addresses off the list in ${monthYear(delist.date)}, both issuers released every one they had frozen, within ${fmtInt(slowest)} day${slowest === 1 ? "" : "s"}.`
+          : "",
       ].filter(Boolean),
-      caveat: "Lit points match a public record. Circle's screening shows as vertical bands: many addresses frozen in the same block.",
+      caveat: "Counted for addresses whose listing date is known to the day (added after September 2022), on chains that were live when they were listed. Lit points match a public record.",
     },
     {
       id: "receipt",
