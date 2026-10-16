@@ -10,6 +10,7 @@ import { EXPLORER, recordLabel, type Chain, type Ledger } from "../lib/data";
 import { fmtCompactUsd, fmtDate, fmtDateTime, short } from "../lib/format";
 import { addressView } from "../lib/lookup";
 import { useStore } from "../lib/store";
+import { CopyButton } from "../ui/CopyButton";
 
 const SOURCE: Record<string, string> = { ofac_sdn: "OFAC SDN list", federal_register: "Federal Register", doj: "DOJ", court: "court record", issuer: "issuer statement", explorer_label: "explorer label", press: "press", tracker: "tracker" };
 const dedupe = <T extends { entity: string; evidence_url: string; confidence: string }>(rows: T[]) => {
@@ -49,10 +50,6 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
   };
 
   const example = ledger.site.addr.find((_, i) => ledger.site.conf[i] === 3 && ledger.site.actions[ledger.site.a[i]] === "freeze") ?? "";
-  const [copied, setCopied] = useState(false);
-  const copyLink = () => {
-    navigator.clipboard?.writeText(location.href).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); });
-  };
   const askWhom = !address ? "" : isTronAddress(address)
     ? "Tether's USDT contract on Tron"
     : isEvmAddress(address)
@@ -61,7 +58,7 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
 
   return (
     <section id="lookup" className="px-5 py-16 md:px-8 md:py-24">
-      <div className="max-w-[72rem]">
+      <div className="mx-auto max-w-[72rem]">
         <h2 className="display text-[34px] md:text-[44px]">Look up an address</h2>
         <p className="mt-2 max-w-[48rem] text-paper-2">
           Any Ethereum, Base, Tron or Solana address. The answer comes from the ledger first, then from the issuer contracts themselves if you ask.
@@ -83,7 +80,7 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
         </div>
         {!text && example && (
           <p className="mt-2 text-[12.5px] text-paper-3">
-            Try one that matches the sanctions list: <button className="mono border-0 p-0 underline" onClick={() => setText(example)}>{short(example, 10, 6)}</button>
+            Try one that matches the sanctions list: <button className="mono min-h-0 border-0 p-0 underline" onClick={() => setText(example)}>{short(example, 10, 6)}</button>
           </p>
         )}
         {text && !address && <p className="mt-2 text-[12.5px] text-ember">That does not look like an address on a chain this ledger covers.</p>}
@@ -195,7 +192,7 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
                       {view.chains.map((c) => (
                         <a key={c} href={EXPLORER[c as Chain].address(address)} target="_blank" rel="noopener">{c} explorer</a>
                       ))}
-                      <button className="border-0 p-0 underline" onClick={copyLink} aria-live="polite">{copied ? "Copied" : "Copy link to this lookup"}</button>
+                      <CopyButton className="min-h-0 border-0 p-0 underline" text={() => location.href} label="Copy link to this lookup" />
                     </div>
                   </div>
                 </div>

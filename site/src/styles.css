@@ -21,9 +21,10 @@
   --color-ink-2: #12122a;
   --color-rule: #262643;
   --color-rule-2: #3a3a5e;
+  --color-edge: #5c5c86; /* control borders: ~3:1 on ink, unlike the decorative rules */
   --color-paper: #ececf3;
   --color-paper-2: #a9a9c4;
-  --color-paper-3: #6f6f91;
+  --color-paper-3: #7d7da0; /* ~4.9:1 on ink, AA for small text */
   --color-frost: #a9d6ff;
   --color-frost-2: #5aa9e6;
   --color-sage: #9fd3b4;
@@ -50,7 +51,7 @@ body {
   background: var(--color-ink);
   color: var(--color-paper);
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 93.75%; /* 15px at the default, and follows a visitor's own size setting */
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -143,7 +144,7 @@ textarea,
 select {
   background: transparent;
   color: var(--color-paper);
-  border: 1px solid var(--color-rule-2);
+  border: 1px solid var(--color-edge);
   border-radius: 6px;
   padding: 8px 10px;
   font: inherit;
@@ -152,17 +153,19 @@ input::placeholder,
 textarea::placeholder {
   color: var(--color-paper-3);
 }
-input:focus,
-textarea:focus {
+/* inputs keep the global focus ring and also light their border */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
   border-color: var(--color-frost-2);
-  outline: none;
+  outline-offset: 0;
 }
 
 button {
   font: inherit;
   color: inherit;
   background: none;
-  border: 1px solid var(--color-rule-2);
+  border: 1px solid var(--color-edge);
   border-radius: 6px;
   padding: 6px 12px;
   cursor: pointer;
@@ -199,8 +202,23 @@ td {
   border-bottom: 1px solid var(--color-rule);
   vertical-align: top;
 }
-tr:hover td {
-  background: rgba(169, 214, 255, 0.04);
+/* only rows that open something answer the pointer */
+tr.rowlink {
+  cursor: pointer;
+}
+tr.rowlink:hover td,
+tr.rowlink:focus-within td {
+  background: rgba(169, 214, 255, 0.05);
+}
+tr.rowlink:active td {
+  background: rgba(169, 214, 255, 0.09);
+}
+
+/* touch: a fingertip-sized target; `min-h-0` opts inline text buttons out */
+@media (max-width: 767px) and (pointer: coarse) {
+  button {
+    min-height: 40px;
+  }
 }
 
 /* state words */
@@ -213,6 +231,16 @@ tr:hover td {
 .panel::-webkit-scrollbar { width: 8px; }
 .panel::-webkit-scrollbar-thumb { background: var(--color-rule-2); border-radius: 4px; }
 
+}
+
+/* iOS zooms the page into any field under 16px. Unlayered on purpose, so it
+   wins over the size utilities on each input. */
+@media (max-width: 767px) and (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

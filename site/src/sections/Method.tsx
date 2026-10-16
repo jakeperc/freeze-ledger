@@ -9,7 +9,7 @@ export function Method({ ledger }: { ledger: Ledger }) {
   const open = Object.values(ledger.latest.coverage ?? {}).filter((c) => !c.complete);
   return (
     <section id="method" className="px-5 py-16 md:px-8 md:py-20">
-      <div className="max-w-[72rem]">
+      <div className="mx-auto max-w-[72rem]">
         <h2 className="display text-[34px] md:text-[44px]">Method, in short</h2>
         <div className="mt-6 grid gap-10 md:grid-cols-3">
           <div className="rule pt-4">

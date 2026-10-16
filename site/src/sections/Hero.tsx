@@ -7,10 +7,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { animate } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildChapters } from "../lib/copy";
-import type { Latest, SiteJson } from "../lib/data";
+import { NONE_COLOR, type Latest, type SiteJson } from "../lib/data";
 import { normalizeAddress } from "../lib/chain";
 import { isWide, useStore, type ColorMode, type Layout } from "../lib/store";
+import { FieldFallback } from "../scene/FieldFallback";
 import { Scene } from "../scene/Scene";
+import { ErrorBoundary } from "../ui/ErrorBoundary";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -120,7 +122,7 @@ export function Hero({ latest, site }: { latest: Latest; site: SiteJson | null }
 
       <div className="scene-pin z-20 overflow-hidden bg-ink wide:z-0">
         <div className="relative h-[var(--field-h)] wide:absolute wide:inset-0 wide:h-auto">
-          {site && <Scene site={site} />}
+          <ErrorBoundary fallback={<FieldFallback />}>{site && <Scene site={site} />}</ErrorBoundary>
           {/* keeps the floating chapter text readable over the brightest points */}
           <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-[1] hidden w-[42rem] bg-gradient-to-r from-ink/90 via-ink/60 to-transparent wide:block" />
         </div>
@@ -169,7 +171,7 @@ function Masthead({ className, onSearch }: { className: string; onSearch: () => 
   return (
     <header className={`items-start justify-between gap-4 ${className}`}>
       <div className="pointer-events-auto min-w-0 md:shrink-0">
-        <div className="display text-[22px] leading-none">Freeze Ledger</div>
+        <h1 className="display text-[22px] leading-none">Freeze Ledger</h1>
         <div className="mt-1 text-[12px] text-paper-3">Every stablecoin issuer freeze, with its receipt</div>
       </div>
       {/* phones: one button, which opens the palette (address lookup and every section) */}
@@ -229,7 +231,12 @@ function Scrubber({ site: s }: { site: SiteJson }) {
         <span>Through</span>
         <span className="mono text-paper-2">{new Date(at * 1000).toISOString().slice(0, 10)} · {shown.toLocaleString()} events</span>
       </div>
-      <input type="range" min={0} max={1000} value={Math.round(cut * 1000)} onChange={(e) => setCut(Number(e.target.value) / 1000)} className="w-full" aria-label="Show events through a date" />
+      <input
+        type="range" min={0} max={1000} value={Math.round(cut * 1000)}
+        onChange={(e) => setCut(Number(e.target.value) / 1000)}
+        className="w-full" aria-label="Show events through a date"
+        aria-valuetext={`Through ${new Date(at * 1000).toISOString().slice(0, 10)}, ${shown.toLocaleString()} events`}
+      />
     </div>
   );
 }
@@ -240,7 +247,7 @@ function Legend({ colorMode }: { colorMode: ColorMode }) {
       ? [["Ethereum", "var(--color-eth)"], ["Base", "var(--color-base)"], ["Tron", "var(--color-tron)"], ["Solana", "var(--color-sol)"]]
       : colorMode === "action"
         ? [["Frozen", "var(--color-frost)"], ["Released", "var(--color-sage)"], ["Destroyed", "var(--color-ember)"]]
-        : [["Public record", "var(--color-amber)"], ["No record found", "#3c3c5c"]];
+        : [["Public record", "var(--color-amber)"], ["No record found", NONE_COLOR]];
   return (
     <div className="flex w-full flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-paper-2 md:w-auto">
       {items.map(([label, color]) => (

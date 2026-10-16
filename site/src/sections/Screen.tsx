@@ -6,6 +6,7 @@ import { extractAddresses } from "../lib/chain";
 import { recordLabel, type Ledger } from "../lib/data";
 import { fmtDate, short } from "../lib/format";
 import { addressView } from "../lib/lookup";
+import { downloadBlob } from "../lib/browser";
 
 export function Screen({ ledger }: { ledger: Ledger }) {
   const [text, setText] = useState("");
@@ -30,14 +31,11 @@ export function Screen({ ledger }: { ledger: Ledger }) {
         `"${r.record ? recordLabel(r.record).replace(/"/g, '""') : ""}"`, r.record?.confidence ?? "", r.events,
       ].join(","));
     }
-    const blob = new Blob([lines.join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `freeze-ledger-screen-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(`freeze-ledger-screen-${new Date().toISOString().slice(0, 10)}.csv`, new Blob([lines.join("\n") + "\n"], { type: "text/csv" }));
   };
   return (
     <section id="screen" className="px-5 py-16 md:px-8 md:py-20">
-      <div className="max-w-[72rem]">
+      <div className="mx-auto max-w-[72rem]">
         <h2 className="display text-[34px] md:text-[44px]">Screen a list</h2>
         <p className="mt-2 max-w-[48rem] text-paper-2">
           Paste anything with addresses in it: a column from a spreadsheet, a JSON export, a block of text. Every address is checked against the ledger in your browser. Nothing is uploaded anywhere.
