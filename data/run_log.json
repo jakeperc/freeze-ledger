@@ -1,0 +1,43 @@
+{
+  "run": {
+    "at": "2026-10-16T08:17:34Z",
+    "chains": [
+      {
+        "chain": "ethereum",
+        "events_seen": 3,
+        "events_new": 1,
+        "calls": 5,
+        "cursor_from": "26193106",
+        "cursor_to": "26203830",
+        "notes": [],
+        "seconds": 3.1
+      },
+      {
+        "chain": "base",
+        "error": "403: {\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32602,\"message\":\"Archive requests require a personal token. Get one at: https://www.allnodes.com/publicnode\"},\"id\":2}\n (https://base-rpc.publicnode.com)"
+      },
+      {
+        "chain": "tron",
+        "events_seen": 41,
+        "events_new": 6,
+        "calls": 3,
+        "cursor_from": "1792072572000",
+        "cursor_to": "1792138641663",
+        "notes": [
+          "no TronGrid API key (FL_TRON_API_KEY); using the keyless rate limit"
+        ],
+        "seconds": 12.7
+      },
+      {
+        "chain": "solana",
+        "events_seen": 0,
+        "events_new": 0,
+        "calls": 2,
+        "cursor_from": "",
+        "cursor_to": "454774557",
+        "notes": [],
+        "seconds": 0.4
+      }
+    ]
+  }
+}
