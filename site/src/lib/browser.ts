@@ -1,7 +1,7 @@
 /** Small browser helpers shared across sections: clipboard, downloads,
  *  scrolling that respects reduced motion, and media queries as state. */
 
-import { useSyncExternalStore } from "react";
+import { useLayoutEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 
 /** Copy text to the clipboard. Falls back to a hidden textarea where the
  *  async clipboard is missing or refused; never throws. */
@@ -55,6 +55,24 @@ export const prefersReducedMotion = () =>
 export function scrollToEl(target: string | Element | null, block: ScrollLogicalPosition = "start") {
   const el = typeof target === "string" ? document.querySelector(target) : target;
   el?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block });
+}
+
+/** The rendered width of an element, kept current. Charts draw at this width
+ *  so their 10px text stays 10px on a phone instead of shrinking with a
+ *  fixed viewBox. Never below `min`. */
+export function useWidth<T extends HTMLElement>(initial: number, min = 280): [RefObject<T>, number] {
+  const ref = useRef<T>(null);
+  const [w, setW] = useState(initial);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const set = (v: number) => setW(Math.max(min, Math.round(v)));
+    set(el.getBoundingClientRect().width);
+    const ro = new ResizeObserver(([e]) => set(e.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [min]);
+  return [ref, w];
 }
 
 /** A media query as React state, kept current as the window changes. */

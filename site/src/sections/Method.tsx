@@ -1,17 +1,20 @@
 import { laneName } from "../lib/copy";
 import { DATA_BASE, type Ledger } from "../lib/data";
-import { fmtDate } from "../lib/format";
+import { fmtBytes, fmtDate, fmtInt } from "../lib/format";
+import { CopyButton } from "../ui/CopyButton";
 
 const REPO = "https://github.com/jakeperc/freeze-ledger";
+const DOWNLOADS = ["freeze_events.csv", "attributions.csv", "evidence.csv", "sdn_addresses.csv", "sdn_address_history.csv", "latest.json"];
 
 export function Method({ ledger }: { ledger: Ledger }) {
   const gen = ledger.latest.generated_at;
   const open = Object.values(ledger.latest.coverage ?? {}).filter((c) => !c.complete);
+  const citation = `Percy, J. Freeze Ledger, data as of ${fmtDate(gen)}, ${REPO.replace("https://", "")}`;
   return (
     <section id="method" className="px-5 py-16 md:px-8 md:py-20">
       <div className="mx-auto max-w-[72rem]">
         <h2 className="display text-[34px] md:text-[44px]">Method, in short</h2>
-        <div className="mt-6 grid gap-10 md:grid-cols-3">
+        <div className="mt-6 grid gap-10 lg:grid-cols-3">
           <div className="rule pt-4">
             <div className="text-[15px]">What counts</div>
             <p className="mt-2 text-[13.5px] text-paper-2">
@@ -39,16 +42,22 @@ export function Method({ ledger }: { ledger: Ledger }) {
         <div className="rule mt-12 grid gap-8 pt-6 md:grid-cols-[1fr_1fr]">
           <div>
             <div className="text-[13px] text-paper-3">Downloads</div>
-            <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[13.5px]">
-              <a className="mono" href={DATA_BASE + "freeze_events.csv"} download>freeze_events.csv</a>
-              <a className="mono" href={DATA_BASE + "attributions.csv"} download>attributions.csv</a>
-              <a className="mono" href={DATA_BASE + "evidence.csv"} download>evidence.csv</a>
-              <a className="mono" href={DATA_BASE + "sdn_addresses.csv"} download>sdn_addresses.csv</a>
-              <a className="mono" href={DATA_BASE + "sdn_address_history.csv"} download>sdn_address_history.csv</a>
-              <a className="mono" href={DATA_BASE + "latest.json"} download>latest.json</a>
-              <a className="mono" href={REPO} target="_blank" rel="noopener">repository</a>
-            </div>
-            <p className="mt-3 text-[12.5px] text-paper-3">Data CC BY 4.0, code MIT. Cite as <span className="mono">Percy, J. Freeze Ledger, data as of {fmtDate(gen)}, {REPO.replace("https://", "")}</span>.</p>
+            {/* rows and size where the export recorded them, so a phone on data knows what it is about to fetch */}
+            <ul className="mt-2 space-y-1.5 text-[13.5px]">
+              {DOWNLOADS.map((n) => {
+                const m = ledger.latest.files[n];
+                const meta = [m?.rows !== undefined ? `${fmtInt(m.rows)} rows` : "", m?.bytes ? fmtBytes(m.bytes) : ""].filter(Boolean).join(" · ");
+                return (
+                  <li key={n}>
+                    <a className="mono" href={DATA_BASE + n} download>{n}</a>
+                    {meta && <span className="text-[12px] text-paper-3"> · {meta}</span>}
+                  </li>
+                );
+              })}
+              <li><a className="mono" href={REPO} target="_blank" rel="noopener">repository</a></li>
+            </ul>
+            <p className="mt-3 text-[12.5px] text-paper-3">Data CC BY 4.0, code MIT. Cite as <span className="mono">{citation}</span>.</p>
+            <CopyButton className="mt-2" text={() => citation} label="Copy the citation" />
           </div>
           <div className="text-[12.5px] text-paper-3">
             <div className="text-[13px]">About</div>
@@ -58,6 +67,7 @@ export function Method({ ledger }: { ledger: Ledger }) {
             </p>
           </div>
         </div>
+        <p className="mt-12 text-[12.5px]"><a href="#top">Back to the top</a></p>
       </div>
     </section>
   );
