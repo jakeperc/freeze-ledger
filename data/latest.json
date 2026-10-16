@@ -1,10 +1,10 @@
 {
   "attribution_coverage": {
-    "frozen_addresses": 13226,
+    "frozen_addresses": 13233,
     "high": 572,
     "low": 0,
     "moderate": 17,
-    "unattributed": 12637,
+    "unattributed": 12644,
     "unattributed_share": 0.9555
   },
   "attribution_coverage_by_chain": {
@@ -20,8 +20,8 @@
     },
     "solana": {
       "attributed": 0,
-      "frozen_addresses": 18,
-      "unattributed": 18
+      "frozen_addresses": 25,
+      "unattributed": 25
     },
     "tron": {
       "attributed": 341,
@@ -40,7 +40,7 @@
       "unfreeze": 573
     },
     "solana": {
-      "freeze": 19,
+      "freeze": 26,
       "unfreeze": 4
     },
     "tron": {
@@ -52,12 +52,12 @@
   "by_issuer": {
     "circle": {
       "attributed_addresses": 248,
-      "currently_frozen": 1171,
+      "currently_frozen": 1178,
       "destroyed_total": "0.000000",
       "destroys": 0,
-      "events": 1845,
-      "freezes": 1522,
-      "frozen_addresses": 1463,
+      "events": 1852,
+      "freezes": 1529,
+      "frozen_addresses": 1470,
       "released_addresses": 292,
       "unfreezes": 323
     },
@@ -75,7 +75,7 @@
   },
   "by_token_action": {
     "USDC": {
-      "freeze": 1522,
+      "freeze": 1529,
       "unfreeze": 323
     },
     "USDT": {
@@ -107,7 +107,27 @@
     },
     "solana": {
       "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": {
+        "authorities": {
+          "3sNBr7kMccME5D55xNgsmYpZnzPgP2g12CixAajXypn6": {
+            "backfill_done": true,
+            "closed": true,
+            "last_signature": "5afAPFJqavnH6po33UU1CgxB7DaEixZoMK45jAiFD5Wx8EtemNUgAzxeXjwZ6CrT5UxYAbNEWSgGHGX8PoeTVNo1",
+            "last_slot": 285371061,
+            "oldest_signature": "23fvPZMvyjhzoVCahCV6D2ikV15WWkGeKgU94efbsawEWQCUpox4UqiwqBfnbDjGvErbCLbwom86jYqMtgFwEK5u",
+            "oldest_slot": 41559335
+          },
+          "5TYZChz7APFopR5QirD5of4rQj1p9AXxeSAg6JndBdGj": {
+            "backfill_done": true,
+            "closed": true,
+            "last_signature": "5Dh1kphF9fK6UCR8Pb7ePV1vbtMma9GZ6YZ2nHox3fcJQ21gmgfmZyfwAJbLpELdxtxpYoFV1UE93kctak1Nangn",
+            "last_slot": 457006668,
+            "oldest_signature": "SeJdkBYPFuoTMuPHoaCZ88LFd6oijWza7t4v4J8q2YHS3ikuLvaFo58i2ChapVWyCoQWUfuQSfQxzjueegmGFg8",
+            "oldest_slot": 41322376
+          }
+        },
         "authority_history": [
+          "5TYZChz7APFopR5QirD5of4rQj1p9AXxeSAg6JndBdGj",
+          "3sNBr7kMccME5D55xNgsmYpZnzPgP2g12CixAajXypn6",
           "7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar"
         ],
         "backfill_done": true,
@@ -178,8 +198,8 @@
     "solana": {
       "detail": {
         "USDC:freeze": {
-          "events": 19,
-          "first": "2024-08-23T15:49:17Z",
+          "events": 26,
+          "first": "2022-11-11T19:25:30Z",
           "last": "2026-10-09T05:38:44Z"
         },
         "USDC:unfreeze": {
@@ -188,8 +208,8 @@
           "last": "2025-09-04T05:08:45Z"
         }
       },
-      "events": 23,
-      "first": "2024-08-23T15:49:17Z",
+      "events": 30,
+      "first": "2022-11-11T19:25:30Z",
       "last": "2026-10-09T05:38:44Z"
     },
     "tron": {
@@ -224,31 +244,31 @@
       "USDT": 2816
     },
     "solana": {
-      "USDC": 15
+      "USDC": 22
     },
     "tron": {
       "USDT": 7958
     }
   },
-  "currently_frozen_total": 11945,
+  "currently_frozen_total": 11952,
   "destroyed_usdt_by_chain": {
     "ethereum": "818478019.343261",
     "tron": "583842571.106994"
   },
   "events_issuer_internal": 80,
-  "events_public": 17767,
-  "events_total": 17847,
+  "events_public": 17774,
+  "events_total": 17854,
   "files": {
     "attributions.csv": {
       "rows": 1067,
       "sha256": "1edbd42c25018ffd6349e577f02163866dab66b9f9221b650a8b2ab0846290cb"
     },
     "evidence.csv": {
-      "sha256": "f5219aa6a6c29f4b1f42e95c3bd8abe555a668119eff0d44924ee2d0b93dbef4"
+      "sha256": "aceed65936225c004be9dc6e61bdea0841ddc363fa21ac6efb698694d904c3e4"
     },
     "freeze_events.csv": {
-      "rows": 17847,
-      "sha256": "d73ca997f91ec9290d4884432e7db2dd574606c46d36dfc349d553686e729af4"
+      "rows": 17854,
+      "sha256": "b5dbc90ace1c699c1b2b62c4d437b44f1a1bfef69509844663f18f3a95af5e65"
     }
   },
   "freeze_to_destroy_days": {
@@ -265,8 +285,25 @@
     "p25": 42.1,
     "p75": 415.0
   },
-  "generated_at": "2026-10-16T08:17:53Z",
+  "generated_at": "2026-10-16T12:19:52Z",
   "last_run": {
+    "backfill": {
+      "at": "2026-10-15T21:17:49Z",
+      "chains": [
+        {
+          "calls": 18,
+          "chain": "solana",
+          "cursor_from": "41322376",
+          "cursor_to": "454774557",
+          "events_new": 0,
+          "events_seen": 0,
+          "notes": [
+            "USDC: history of 5TYZChz7APFopR5QirD5of4rQj1p9AXxeSAg6JndBdGj walked to its first transaction"
+          ],
+          "seconds": 13.6
+        }
+      ]
+    },
     "run": {
       "at": "2026-10-16T08:17:34Z",
       "chains": [
@@ -594,7 +631,7 @@
       "base": 0,
       "ethereum": 70,
       "month": "2022-11",
-      "solana": 0,
+      "solana": 2,
       "tron": 10
     },
     {
@@ -685,7 +722,7 @@
       "base": 0,
       "ethereum": 221,
       "month": "2023-12",
-      "solana": 0,
+      "solana": 3,
       "tron": 60
     },
     {
@@ -720,7 +757,7 @@
       "base": 5,
       "ethereum": 92,
       "month": "2024-05",
-      "solana": 0,
+      "solana": 2,
       "tron": 54
     },
     {
