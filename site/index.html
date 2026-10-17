@@ -6,13 +6,33 @@
     <title>Freeze Ledger</title>
     <meta name="description" content="Every USDT and USDC issuer freeze on Ethereum, Base, Tron and Solana, read from the chain nightly and joined to the public record that explains it. Open dataset with a public verification suite." />
     <meta name="theme-color" content="#0d0d1a" />
+    <!-- the chapters need latest.json and the field needs site.json: start both before the scripts run -->
+    <link rel="preload" href="%BASE_URL%latest.json" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="%BASE_URL%site.json" as="fetch" crossorigin="anonymous" />
     <meta property="og:title" content="Freeze Ledger" />
     <meta property="og:description" content="Every stablecoin issuer freeze, read from the chain, joined to the public record, verified before publication." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="__SITE_URL__" />
+    <meta property="og:image" content="__SITE_URL__og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Freeze Ledger: every stablecoin issuer freeze as a point, one lane per chain and token, left to right in time." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="__SITE_URL__" />
+    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="%BASE_URL%favicon-32.png" />
+    <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230d0d1a'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23a9d6ff'/%3E%3C/svg%3E" />
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <p style="max-width: 34rem; padding: 2rem 1.25rem; color: #a9a9c4">
+        Freeze Ledger's interactive view needs JavaScript. The data is in plain files:
+        <a href="freeze_events.csv">freeze_events.csv</a>, <a href="attributions.csv">attributions.csv</a>,
+        <a href="evidence.csv">evidence.csv</a>, and on <a href="https://github.com/jakeperc/freeze-ledger">GitHub</a>.
+      </p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

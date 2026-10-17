@@ -5,12 +5,17 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { animate } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { buildChapters } from "../lib/copy";
-import type { Latest, SiteJson } from "../lib/data";
+import { NONE_COLOR, type Latest, type SiteJson } from "../lib/data";
 import { normalizeAddress } from "../lib/chain";
 import { isWide, useStore, type ColorMode, type Layout } from "../lib/store";
-import { Scene } from "../scene/Scene";
+import { FieldFallback } from "../scene/FieldFallback";
+import { ErrorBoundary } from "../ui/ErrorBoundary";
+import { isMac, scrollToEl } from "../lib/browser";
+
+// three.js is most of the page's weight; the chapters render without it
+const Scene = lazy(() => import("../scene/Scene").then((m) => ({ default: m.Scene })));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -73,7 +78,8 @@ export function Hero({ latest, site }: { latest: Latest; site: SiteJson | null }
       triggers.push(
         ScrollTrigger.create({
           trigger: b,
-          start: () => `top ${edge()}`,
+          // the first chapter is current from load, even below a stacked masthead
+          start: () => (i === 0 ? "top bottom" : `top ${edge()}`),
           end: () => `bottom ${edge()}`,
           onEnter: () => enter(i),
           onEnterBack: () => enter(i),
@@ -91,53 +97,48 @@ export function Hero({ latest, site }: { latest: Latest; site: SiteJson | null }
     return () => triggers.forEach((t) => t.kill());
   }, [chapters, manual, setChapter, setLayout, setColorMode]);
 
+  // Stacked, the band is the field plus the controls strip, whose height
+  // follows the legend; chapters and the scroll triggers read it from here.
+  useEffect(() => {
+    const el = root.current!;
+    const pin = el.querySelector<HTMLElement>(".scene-pin")!;
+    let last = -1;
+    const ro = new ResizeObserver(() => {
+      const h = isWide() ? -1 : pin.offsetHeight;
+      if (h === last) return;
+      last = h;
+      if (h < 0) el.style.removeProperty("--scene-h");
+      else el.style.setProperty("--scene-h", `${h}px`);
+      ScrollTrigger.refresh();
+    });
+    ro.observe(pin);
+    return () => ro.disconnect();
+  }, []);
+
+  const chooseLayout = (l: Layout) => { setManual(true); setLayout(l); };
+  const chooseColor = (c: ColorMode) => { setManual(true); setColorMode(c); };
+
   return (
     <section ref={root} className="relative" aria-label="The field">
+      {/* stacked, the masthead scrolls away above the band instead of covering the field */}
+      <Masthead className="flex gap-y-3 px-5 md:flex-wrap pt-4 pb-3 md:px-8 wide:hidden" onSearch={() => setPaletteOpen(true)} />
+
       <div className="scene-pin z-20 overflow-hidden bg-ink wide:z-0">
-        {site && <Scene site={site} />}
-        {/* keeps the floating chapter text readable over the brightest points */}
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-[1] hidden w-[42rem] bg-gradient-to-r from-ink/90 via-ink/60 to-transparent wide:block" />
+        <div className="relative h-[var(--field-h)] wide:absolute wide:inset-0 wide:h-auto">
+          <ErrorBoundary fallback={<FieldFallback />}><Suspense fallback={null}>{site && <Scene site={site} />}</Suspense></ErrorBoundary>
+          {/* keeps the floating chapter text readable over the brightest points */}
+          <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-[1] hidden w-[42rem] bg-gradient-to-r from-ink/90 via-ink/60 to-transparent wide:block" />
+        </div>
 
-        {/* masthead */}
-        <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between px-5 pt-4 md:px-8">
-          <div className="pointer-events-auto">
-            <div className="display text-[22px] leading-none">Freeze Ledger</div>
-            <div className="mt-1 text-[12px] text-paper-3">Every stablecoin issuer freeze, with its receipt</div>
-          </div>
-          <nav className="pointer-events-auto hidden items-center gap-5 text-[13px] text-paper-2 md:flex">
-            <MastheadLookup />
-            <a href="#registry" className="no-underline hover:text-paper">Registry</a>
-            <a href="#patterns" className="no-underline hover:text-paper">Patterns</a>
-            <a href="#verification" className="no-underline hover:text-paper">Verification</a>
-            <a href="#method" className="no-underline hover:text-paper">Method</a>
-            <button onClick={() => setPaletteOpen(true)} className="flex items-center gap-2 border-rule-2 px-2 py-1 text-[12px]">
-              Search <kbd>⌘K</kbd>
-            </button>
-          </nav>
-        </header>
+        <Masthead className="pointer-events-none absolute inset-x-0 top-0 z-10 hidden px-8 pt-4 wide:flex" onSearch={() => setPaletteOpen(true)} />
 
-        {/* controls */}
-        <div data-controls className="absolute bottom-5 left-5 z-10 flex flex-wrap items-end gap-x-6 gap-y-3 md:left-8 md:bottom-7">
-          <div>
-            <div className="mb-1.5 text-[11px] text-paper-3">Arrange</div>
-            <div className="flex gap-1.5">
-              {LAYOUTS.map((l) => (
-                <button key={l.id} aria-pressed={layout === l.id} title={l.hint} onClick={() => { setManual(true); setLayout(l.id); }} className="px-2.5 py-1 text-[12px]">
-                  {l.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className="mb-1.5 text-[11px] text-paper-3">Color by</div>
-            <div className="flex gap-1.5">
-              {COLORS.map((c) => (
-                <button key={c.id} aria-pressed={colorMode === c.id} onClick={() => { setManual(true); setColorMode(c.id); }} className="px-2.5 py-1 text-[12px]">
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* controls: a strip under the field when stacked, over its foot when wide */}
+        <div
+          data-controls
+          className="flex flex-wrap items-end gap-x-3 gap-y-2 border-t border-rule px-5 pt-2.5 pb-3 md:gap-x-6 md:px-8 wide:absolute wide:bottom-7 wide:left-8 wide:z-10 wide:gap-y-3 wide:border-0 wide:p-0"
+        >
+          <Segmented label="Arrange" items={LAYOUTS} value={layout} onChange={chooseLayout} />
+          <Segmented label="Color by" items={COLORS} value={colorMode} onChange={chooseColor} />
           <Legend colorMode={colorMode} />
           {site && <Scrubber site={site} />}
         </div>
@@ -148,13 +149,16 @@ export function Hero({ latest, site }: { latest: Latest; site: SiteJson | null }
           menu, the controls or the points */}
       <div className="relative z-10 wide:pointer-events-none wide:-mt-[100vh]">
         {chapters.map((c, i) => (
-          <div key={c.id} data-chapter={c.id} className="flex min-h-[calc(100dvh-var(--scene-h))] items-start px-5 pt-8 pb-10 md:px-8 wide:min-h-[80vh] wide:items-center wide:py-0">
+          <div key={c.id} data-chapter={c.id} className="flex min-h-[calc(100svh-var(--scene-h))] items-start px-5 pt-1 pb-10 md:px-8 md:pt-5 wide:min-h-[80vh] wide:items-center wide:py-0">
             <div className={`max-w-[34rem] transition-opacity duration-500 ${chapter === i ? "opacity-100" : "opacity-35"}`}>
-              <div className="display text-[clamp(44px,9vw,124px)] text-paper tnum">
-                <Figure text={c.figure} active={chapter === i} />
+              {/* stacked, the figure holds just under the band while its chapter's lines scroll beneath it */}
+              <div className="sticky top-[var(--scene-h)] z-[1] -mx-5 bg-ink px-5 pt-3 pb-3 md:-mx-8 md:px-8 wide:static wide:mx-0 wide:bg-transparent wide:p-0">
+                <div className="display text-[clamp(38px,10vw,124px)] text-paper tnum">
+                  <Figure text={c.figure} active={chapter === i} />
+                </div>
+                <div className="mt-2 text-[16px] leading-snug text-paper md:text-[21px]">{c.figureLabel}</div>
               </div>
-              <div className="mt-2 text-[18px] leading-snug text-paper md:text-[21px]">{c.figureLabel}</div>
-              <div className="mt-5 space-y-2 text-[14.5px] leading-relaxed text-paper-2">
+              <div className="mt-2 space-y-2 text-[14.5px] leading-relaxed text-paper-2 wide:mt-5">
                 {c.lines.map((l, j) => <p key={j}>{l}</p>)}
               </div>
               {c.caveat && <p className="mt-4 max-w-[30rem] text-[12.5px] leading-relaxed text-paper-3">{c.caveat}</p>}
@@ -163,6 +167,54 @@ export function Hero({ latest, site }: { latest: Latest; site: SiteJson | null }
         ))}
       </div>
     </section>
+  );
+}
+
+function Masthead({ className, onSearch }: { className: string; onSearch: () => void }) {
+  return (
+    <header className={`items-start justify-between gap-4 ${className}`}>
+      <div className="pointer-events-auto min-w-0 md:shrink-0">
+        <h1 className="display text-[22px] leading-none">Freeze Ledger</h1>
+        <div className="mt-1 text-[12px] text-paper-3">Every stablecoin issuer freeze, with its receipt</div>
+      </div>
+      {/* phones: one button, which opens the palette (address lookup and every section) */}
+      <button onClick={onSearch} className="pointer-events-auto shrink-0 px-3 py-1.5 text-[13px] md:hidden" aria-label="Search: look up an address or jump to a section">
+        Search
+      </button>
+      <nav className="pointer-events-auto hidden items-center gap-5 text-[13px] text-paper-2 md:flex">
+        <MastheadLookup />
+        <a href="#registry" className="no-underline hover:text-paper">Registry</a>
+        <a href="#patterns" className="no-underline hover:text-paper">Patterns</a>
+        <a href="#verification" className="no-underline hover:text-paper">Verification</a>
+        <a href="#method" className="no-underline hover:text-paper">Method</a>
+        <button onClick={onSearch} className="flex items-center gap-2 border-rule-2 px-2 py-1 text-[12px]">
+          Search <kbd>{isMac ? "⌘K" : "Ctrl K"}</kbd>
+        </button>
+      </nav>
+    </header>
+  );
+}
+
+/** A row of joined toggle buttons. Its caption shows where there is room;
+ *  on phones the legend under the second row says what the colors are. */
+function Segmented<T extends string>({ label, items, value, onChange }: { label: string; items: { id: T; label: string; hint?: string }[]; value: T; onChange: (v: T) => void }) {
+  return (
+    <div role="group" aria-label={label}>
+      <div className="mb-1.5 hidden text-[11px] text-paper-3 md:block">{label}</div>
+      <div className="flex">
+        {items.map((it, i) => (
+          <button
+            key={it.id}
+            aria-pressed={value === it.id}
+            title={it.hint}
+            onClick={() => onChange(it.id)}
+            className={`px-2 py-1 text-[12px] md:px-2.5 ${i ? "-ml-px" : ""} ${i === 0 ? "rounded-r-none" : i === items.length - 1 ? "rounded-l-none" : "rounded-none"}`}
+          >
+            {it.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -177,12 +229,17 @@ function Scrubber({ site: s }: { site: SiteJson }) {
   while (lo < hi) { const mid = (lo + hi) >> 1; if (s.t[mid] <= at) lo = mid + 1; else hi = mid; }
   const shown = lo;
   return (
-    <div className="min-w-[14rem] md:ml-auto md:mr-8">
+    <div className="hidden min-w-[14rem] md:block md:flex-1 wide:ml-auto wide:mr-8 wide:flex-none">
       <div className="mb-1.5 flex items-baseline justify-between text-[11px] text-paper-3">
         <span>Through</span>
         <span className="mono text-paper-2">{new Date(at * 1000).toISOString().slice(0, 10)} · {shown.toLocaleString()} events</span>
       </div>
-      <input type="range" min={0} max={1000} value={Math.round(cut * 1000)} onChange={(e) => setCut(Number(e.target.value) / 1000)} className="w-full" aria-label="Show events through a date" />
+      <input
+        type="range" min={0} max={1000} value={Math.round(cut * 1000)}
+        onChange={(e) => setCut(Number(e.target.value) / 1000)}
+        className="w-full" aria-label="Show events through a date"
+        aria-valuetext={`Through ${new Date(at * 1000).toISOString().slice(0, 10)}, ${shown.toLocaleString()} events`}
+      />
     </div>
   );
 }
@@ -193,9 +250,9 @@ function Legend({ colorMode }: { colorMode: ColorMode }) {
       ? [["Ethereum", "var(--color-eth)"], ["Base", "var(--color-base)"], ["Tron", "var(--color-tron)"], ["Solana", "var(--color-sol)"]]
       : colorMode === "action"
         ? [["Frozen", "var(--color-frost)"], ["Released", "var(--color-sage)"], ["Destroyed", "var(--color-ember)"]]
-        : [["Public record", "var(--color-amber)"], ["No record found", "#3c3c5c"]];
+        : [["Public record", "var(--color-amber)"], ["No record found", NONE_COLOR]];
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-paper-2">
+    <div className="flex w-full flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-paper-2 md:w-auto">
       {items.map(([label, color]) => (
         <span key={label} className="flex items-center gap-1.5">
           <i className="inline-block h-2 w-2 rounded-full" style={{ background: color }} />
@@ -215,9 +272,9 @@ function MastheadLookup() {
     if (!addr) return;
     const u = new URL(location.href);
     u.searchParams.set("a", addr);
-    history.replaceState(null, "", u); // read by the lookup if it mounts after this
+    history.replaceState(history.state, "", u); // read by the lookup if it mounts after this
     dispatchEvent(new CustomEvent("fl:lookup", { detail: addr }));
-    document.querySelector("#lookup")?.scrollIntoView({ behavior: "smooth" });
+    scrollToEl("#lookup");
     setQ("");
   };
   return (
