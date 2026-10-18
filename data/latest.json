@@ -103,7 +103,7 @@
         "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6082465,
         "0xdac17f958d2ee523a2206206994597c13d831ec7": 4634748
       },
-      "last_block": 26210895
+      "last_block": 26218136
     },
     "solana": {
       "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": {
@@ -330,7 +330,7 @@
       "sha256": "98682cdaed6448ccf1ddc3b83ac33d62bebf412b69587e26d1a171fd02a200ff"
     },
     "evidence.csv": {
-      "sha256": "a9cc00495fc774544687acb4f11fe0664e3b41d965f8a3393b8e0ebd20aefd98"
+      "sha256": "778e6d620c68c4699489815714cb9456ef1b229a1a2dae8c909d6a23c619a397"
     },
     "freeze_events.csv": {
       "rows": 17870,
@@ -351,7 +351,7 @@
     "p25": 42.1,
     "p75": 415.0
   },
-  "generated_at": "2026-10-17T07:54:17Z",
+  "generated_at": "2026-10-18T08:08:27Z",
   "last_run": {
     "backfill": {
       "at": "2026-10-15T21:17:49Z",
@@ -371,17 +371,17 @@
       ]
     },
     "run": {
-      "at": "2026-10-17T07:53:54Z",
+      "at": "2026-10-18T08:08:08Z",
       "chains": [
         {
-          "calls": 4,
+          "calls": 3,
           "chain": "ethereum",
-          "cursor_from": "26203767",
-          "cursor_to": "26210895",
-          "events_new": 3,
-          "events_seen": 3,
+          "cursor_from": "26210832",
+          "cursor_to": "26218136",
+          "events_new": 0,
+          "events_seen": 0,
           "notes": [],
-          "seconds": 1.0
+          "seconds": 0.9
         },
         {
           "chain": "base",
@@ -390,14 +390,14 @@
         {
           "calls": 3,
           "chain": "tron",
-          "cursor_from": "1792104930000",
-          "cursor_to": "1792223623326",
-          "events_new": 13,
-          "events_seen": 28,
+          "cursor_from": "1792184532000",
+          "cursor_to": "1792310877702",
+          "events_new": 0,
+          "events_seen": 13,
           "notes": [
             "no TronGrid API key (FL_TRON_API_KEY); using the keyless rate limit"
           ],
-          "seconds": 11.2
+          "seconds": 9.5
         },
         {
           "calls": 3,
@@ -407,7 +407,7 @@
           "events_new": 0,
           "events_seen": 0,
           "notes": [],
-          "seconds": 0.4
+          "seconds": 0.9
         }
       ]
     }
