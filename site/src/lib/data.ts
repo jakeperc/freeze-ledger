@@ -67,7 +67,7 @@ export interface Latest {
   };
   currently_frozen_split: { balance_held: number; balance_destroyed: number };
   coverage: Record<string, LaneCoverage>;
-  files: Record<string, { sha256: string; rows?: number }>;
+  files: Record<string, { sha256: string; rows?: number; bytes?: number }>;
   registry: any[];
   checkpoints: Record<string, any>;
 }
@@ -209,7 +209,7 @@ export function recordLabel(a: Pick<Attribution, "entity" | "basis" | "source_cl
 export const CHAIN_COLOR: Record<Chain, string> = { ethereum: "#8ea2ff", base: "#4f8cff", tron: "#ff6b6b", solana: "#8ee3c8" };
 export const ACTION_COLOR: Record<Action, string> = { freeze: "#a9d6ff", unfreeze: "#9fd3b4", destroy: "#ff7a59" };
 export const RECORD_COLOR = "#ffcf70";
-export const NONE_COLOR = "#3c3c5c";
+export const NONE_COLOR = "#4a4a70"; // absence: dim, but still visible on ink
 export const CONF_LABEL = ["no public record", "low", "moderate", "high"] as const;
 
 export const EXPLORER: Record<Chain, { address: (a: string) => string; tx: (t: string) => string }> = {

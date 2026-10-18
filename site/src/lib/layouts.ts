@@ -41,8 +41,10 @@ export interface LayoutResult {
   positions: Float32Array; // xyz per event
   /** `weight` ranks labels when they collide on screen (higher is kept); with
    *  `r`, (x, y) is the centre of a cluster of that radius and the label is
-   *  placed beside it wherever it covers no other cluster */
-  labels: { text: string; x: number; y: number; sub?: string; weight?: number; r?: number }[];
+   *  placed beside it wherever it covers no other cluster; `top` and `left`
+   *  are a lane's upper-left corner, which compact labels hang from, clear of
+   *  the dense recent end of the lane */
+  labels: { text: string; x: number; y: number; sub?: string; weight?: number; r?: number; top?: number; left?: number }[];
   /** time scale used by the timeline layout, for axis ticks */
   tMin: number;
   tMax: number;
@@ -74,7 +76,7 @@ export function timelineLayout(site: SiteJson): LayoutResult {
   }
   const labels = LANES.map((l, li) => {
     const count = counts[li];
-    return { text: l.label, x: SCENE_W / 2 - 0.6, y: laneTop[li] - 0.3, sub: count ? `${count.toLocaleString()} events` : "no events indexed" };
+    return { text: l.label, x: SCENE_W / 2 - 0.6, y: laneTop[li] - 0.3, top: laneTop[li], left: -SCENE_W / 2 + 1.0, sub: count ? `${count.toLocaleString()} events` : "no events indexed" };
   });
   const rules = laneTop.slice(1).map((y) => ({ y, x0: -SCENE_W / 2 + 1.0, x1: SCENE_W / 2 - 0.4 }));
   return { positions: pos, labels, tMin, tMax, rules };

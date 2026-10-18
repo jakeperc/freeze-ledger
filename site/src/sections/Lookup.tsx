@@ -4,14 +4,20 @@
  *  frozen right now. */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { isEvmAddress, isTronAddress, liveStatus, normalizeAddress, type LiveStatus } from "../lib/chain";
 import { EXPLORER, recordLabel, type Chain, type Ledger } from "../lib/data";
 import { fmtCompactUsd, fmtDate, fmtDateTime, short } from "../lib/format";
 import { addressView } from "../lib/lookup";
 import { useStore } from "../lib/store";
+import { CopyButton } from "../ui/CopyButton";
 
 const SOURCE: Record<string, string> = { ofac_sdn: "OFAC SDN list", federal_register: "Federal Register", doj: "DOJ", court: "court record", issuer: "issuer statement", explorer_label: "explorer label", press: "press", tracker: "tracker" };
+/** "home.treasury.gov · sdn.xml": the site and the file, readable on a phone. */
+const evidenceLabel = (u: string) => {
+  const file = u.split("/").filter(Boolean).pop() ?? u;
+  try { return `${new URL(u).hostname.replace(/^www\./, "")} · ${file}`; } catch { return file; }
+};
 const dedupe = <T extends { entity: string; evidence_url: string; confidence: string }>(rows: T[]) => {
   const seen = new Set<string>();
   return rows.filter((r) => { const k = `${r.entity}|${r.evidence_url}|${r.confidence}`; if (seen.has(k)) return false; seen.add(k); return true; });
@@ -19,22 +25,29 @@ const dedupe = <T extends { entity: string; evidence_url: string; confidence: st
 
 export function Lookup({ ledger }: { ledger: Ledger }) {
   const [text, setText] = useState(() => new URLSearchParams(location.search).get("a") ?? "");
-  const [live, setLive] = useState<{ status: "idle" | "loading" | "done" | "error"; rows: LiveStatus[]; error?: string }>({ status: "idle", rows: [] });
+  const [live, setLive] = useState<{ status: "idle" | "loading" | "done" | "error"; rows: LiveStatus[]; error?: string; at?: number }>({ status: "idle", rows: [] });
+  const [touched, setTouched] = useState(false); // judge the input once the visitor leaves it, not on the first keystroke
+  const [allHistory, setAllHistory] = useState(false);
   const openDrawer = useStore((s) => s.openDrawer);
   const address = normalizeAddress(text);
   const view = useMemo(() => (address ? addressView(ledger, address) : null), [ledger, address]);
 
+  const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    const onLookup = (e: Event) => setText((e as CustomEvent<string>).detail);
+    const onLookup = (e: Event) => {
+      setText((e as CustomEvent<string>).detail);
+      input.current?.focus({ preventScroll: true }); // the caller scrolls here
+    };
     addEventListener("fl:lookup", onLookup);
     return () => removeEventListener("fl:lookup", onLookup);
   }, []);
 
   useEffect(() => {
     setLive({ status: "idle", rows: [] });
+    setAllHistory(false);
     const url = new URL(location.href);
     if (address) url.searchParams.set("a", address); else url.searchParams.delete("a");
-    history.replaceState(null, "", url);
+    history.replaceState(history.state, "", url); // keeps an open receipt's history marker
   }, [address]);
 
   const check = async () => {
@@ -42,17 +55,22 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
     setLive({ status: "loading", rows: [] });
     try {
       const rows = await liveStatus(address, (view?.states ?? []).map((s) => s.account).filter((a): a is string => !!a));
-      setLive({ status: "done", rows });
+      setLive({ status: "done", rows, at: Date.now() });
     } catch (e) {
       setLive({ status: "error", rows: [], error: e instanceof Error ? e.message : String(e) });
     }
   };
 
   const example = ledger.site.addr.find((_, i) => ledger.site.conf[i] === 3 && ledger.site.actions[ledger.site.a[i]] === "freeze") ?? "";
-  const [copied, setCopied] = useState(false);
-  const copyLink = () => {
-    navigator.clipboard?.writeText(location.href).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); });
-  };
+  const invalid = !!text.trim() && !address && (touched || text.trim().length > 44);
+  const asOf = live.at ? ` · as of ${new Date(live.at).toISOString().slice(11, 16)} UTC` : "";
+  const canShare = typeof navigator !== "undefined" && "share" in navigator;
+  const linkRow = (
+    <>
+      <CopyButton className="min-h-0 border-0 px-0 py-1.5 underline" text={() => location.href} label="Copy link to this lookup" />
+      {canShare && <button className="min-h-0 border-0 px-0 py-1.5 underline" onClick={() => navigator.share({ title: "Freeze Ledger lookup", url: location.href }).catch(() => {})}>Share</button>}
+    </>
+  );
   const askWhom = !address ? "" : isTronAddress(address)
     ? "Tether's USDT contract on Tron"
     : isEvmAddress(address)
@@ -61,7 +79,7 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
 
   return (
     <section id="lookup" className="px-5 py-16 md:px-8 md:py-24">
-      <div className="max-w-[72rem]">
+      <div className="mx-auto max-w-[72rem]">
         <h2 className="display text-[34px] md:text-[44px]">Look up an address</h2>
         <p className="mt-2 max-w-[48rem] text-paper-2">
           Any Ethereum, Base, Tron or Solana address. The answer comes from the ledger first, then from the issuer contracts themselves if you ask.
@@ -69,9 +87,14 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
         </p>
         <div className="mt-6 flex flex-col gap-2 md:flex-row">
           <input
+            ref={input}
             className="mono flex-1 text-[14px]"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => { setText(e.target.value); if (!e.target.value) setTouched(false); }}
+            onBlur={() => setTouched(true)}
+            onKeyDown={(e) => { if (e.key === "Enter") { setTouched(true); if (address) check(); } }}
+            aria-invalid={invalid || undefined}
+            aria-describedby={invalid ? "lookup-error" : undefined}
             placeholder="0x… or T… or a Solana address"
             spellCheck={false}
             autoComplete="off"
@@ -83,10 +106,10 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
         </div>
         {!text && example && (
           <p className="mt-2 text-[12.5px] text-paper-3">
-            Try one that matches the sanctions list: <button className="mono border-0 p-0 underline" onClick={() => setText(example)}>{short(example, 10, 6)}</button>
+            Try one that matches the sanctions list: <button className="mono min-h-0 border-0 p-0 underline" onClick={() => setText(example)}>{short(example, 10, 6)}</button>
           </p>
         )}
-        {text && !address && <p className="mt-2 text-[12.5px] text-ember">That does not look like an address on a chain this ledger covers.</p>}
+        {invalid && <p id="lookup-error" role="alert" className="mt-2 text-[12.5px] text-ember">That does not look like an address on a chain this ledger covers.</p>}
 
         <AnimatePresence mode="wait">
           {address && (
@@ -98,8 +121,9 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
                     No freeze, release or destroyed balance for <span className="mono">{short(address, 10, 6)}</span> on the chains and date ranges indexed so far. That is not the same as never frozen: check live on-chain, and see the coverage note under the field for what is not indexed yet.
                   </p>
                   {live.status === "error" && <p className="mt-3 text-ember">The public nodes did not answer ({live.error}). Try again in a moment.</p>}
+                  {live.status === "done" && <div className="mt-3 text-[12px] text-paper-3">Live from the contracts{asOf}</div>}
                   {live.status === "done" && (
-                    <ul className="mt-3 space-y-1.5">
+                    <ul className="mt-1 space-y-1.5">
                       {live.rows.length === 0 && <li className="text-paper-3">This is not a USDC or USDT token account. Listing a wallet's token accounts needs an indexed call that free public nodes refuse from a browser; paste the token account instead.</li>}
                       {live.rows.map((r) => (
                         <li key={r.chain + r.token + (r.account ?? "")} className="flex flex-wrap items-baseline justify-between gap-x-4">
@@ -113,9 +137,10 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
                       ))}
                     </ul>
                   )}
+                  <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px]">{linkRow}</div>
                 </div>
               ) : (
-                <div className="grid gap-8 md:grid-cols-[1.1fr_1fr]">
+                <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
                   <div>
                     <div className="rule pt-4 text-[12px] text-paper-3">Ledger state</div>
                     <div className="mt-2 space-y-2">
@@ -143,13 +168,13 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
                               <span className="text-paper-3"> · {SOURCE[a.source_class] ?? a.source_class} · {a.confidence} confidence{a.record_date ? ` · ${a.record_date}` : ""}</span>
                             </div>
                             <div className="text-paper-2">{a.basis}</div>
-                            <a className="mono text-[12px]" href={a.evidence_url} target="_blank" rel="noopener">{a.evidence_url.split("/").pop()}</a>
+                            <a className="mono break-all text-[12px]" href={a.evidence_url} target="_blank" rel="noopener">{evidenceLabel(a.evidence_url)}</a>
                           </li>
                         ))}
                       </ul>
                     )}
 
-                    <div className="rule mt-6 pt-4 text-[12px] text-paper-3">Live from the contracts</div>
+                    <div className="rule mt-6 pt-4 text-[12px] text-paper-3">Live from the contracts{live.status === "done" ? asOf : ""}</div>
                     {live.status === "idle" && <p className="mt-2 text-paper-3">Press “Check live on-chain” to ask {askWhom} whether this address is blocked at this moment.</p>}
                     {live.status === "done" && live.rows.length === 0 && <p className="mt-2 text-paper-3">This is not a USDC or USDT token account. Listing a wallet's token accounts needs an indexed call that free public nodes refuse from a browser; paste the token account instead.</p>}
                     {live.status === "error" && <p className="mt-2 text-ember">The public nodes did not answer ({live.error}). Try again in a moment.</p>}
@@ -174,9 +199,9 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
                   </div>
 
                   <div>
-                    <div className="rule pt-4 text-[12px] text-paper-3">History · {view.events.length} event{view.events.length === 1 ? "" : "s"}</div>
+                    <div className="rule pt-4 text-[12px] text-paper-3">History · {view.events.length} event{view.events.length === 1 ? "" : "s"}{!allHistory && view.events.length > 20 ? " · latest 20" : ""}</div>
                     <ol className="mt-2 space-y-1.5">
-                      {view.events.map((i) => {
+                      {(allHistory ? view.events : view.events.slice(-20)).map((i) => {
                         const s = ledger.site;
                         const action = s.actions[s.a[i]], chain = s.chains[s.c[i]] as Chain;
                         return (
@@ -191,11 +216,12 @@ export function Lookup({ ledger }: { ledger: Ledger }) {
                         );
                       })}
                     </ol>
-                    <div className="mt-4 flex flex-wrap gap-3 text-[12.5px]">
+                    {!allHistory && view.events.length > 20 && <button className="mt-3" onClick={() => setAllHistory(true)}>Show all {view.events.length}</button>}
+                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px]">
                       {view.chains.map((c) => (
                         <a key={c} href={EXPLORER[c as Chain].address(address)} target="_blank" rel="noopener">{c} explorer</a>
                       ))}
-                      <button className="border-0 p-0 underline" onClick={copyLink} aria-live="polite">{copied ? "Copied" : "Copy link to this lookup"}</button>
+                      {linkRow}
                     </div>
                   </div>
                 </div>

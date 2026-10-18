@@ -26,6 +26,10 @@ def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else ""
 
 
+def _bytes(path: Path) -> int:
+    return path.stat().st_size if path.exists() else 0
+
+
 def currently_frozen(events: list[dict]) -> dict[tuple[str, str, str], bool]:
     """(chain, token, address) -> frozen now, from the last action in order."""
     ordered = sorted(events, key=lambda e: (e["chain"], e["token"], e["address"], e["block_time"], int(e["block_number"]), int(e["log_index"])))
@@ -375,9 +379,9 @@ def write_latest(events=None, attributions=None, out: Path | None = None) -> dic
     views = compute_views(events, attributions, cps, run_log)
     views["generated_at"] = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     views["files"] = {
-        "freeze_events.csv": {"sha256": _sha(paths.events_csv()), "rows": len(events)},
-        "attributions.csv": {"sha256": _sha(paths.attributions_csv()), "rows": len(attributions)},
-        "evidence.csv": {"sha256": _sha(paths.evidence_csv())},
+        "freeze_events.csv": {"sha256": _sha(paths.events_csv()), "rows": len(events), "bytes": _bytes(paths.events_csv())},
+        "attributions.csv": {"sha256": _sha(paths.attributions_csv()), "rows": len(attributions), "bytes": _bytes(paths.attributions_csv())},
+        "evidence.csv": {"sha256": _sha(paths.evidence_csv()), "bytes": _bytes(paths.evidence_csv())},
     }
     views["registry"] = registry.describe()
     out = out or paths.latest_json()

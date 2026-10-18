@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Not found · Freeze Ledger</title>
+    <style>
+      html, body { margin: 0; background: #0d0d1a; color: #ececf3; font: 15px/1.5 system-ui, sans-serif; }
+      main { max-width: 34rem; padding: 4rem 1.25rem; }
+      a { color: inherit; text-underline-offset: 3px; }
+      p { color: #a9a9c4; }
+    </style>
+    <script>
+      // GitHub Pages serves this for any unknown path under the project. Send
+      // the visitor to the page itself, keeping any ?a= / ?e= / #section.
+      (function () {
+        var seg = location.pathname.split("/")[1];
+        var base = seg ? "/" + seg + "/" : "/";
+        if (location.pathname !== base) location.replace(base + location.search + location.hash);
+      })();
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>Not found</h1>
+      <p>There is no page at this address. The ledger is at <a href="/freeze-ledger/">/freeze-ledger/</a>.</p>
+    </main>
+  </body>
+</html>

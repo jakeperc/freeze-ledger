@@ -20,6 +20,8 @@ It is a dataset first, with a page on top. Every number is derived from a chain 
 
 Schema for all three tables is in [METHODOLOGY.md](METHODOLOGY.md#schema).
 
+Links into the page: `?a=<address>` opens a lookup, `?e=<event_id>` opens that event's receipt (the same `chain:tx:log` id as `freeze_events.csv`), and `r_*` parameters carry a filtered Registry view.
+
 ## Reproduce it
 
 Standard library only. No API keys are required for Ethereum, Base or Solana; a free TronGrid key makes Tron faster.
