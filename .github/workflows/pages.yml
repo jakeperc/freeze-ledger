@@ -1,12 +1,21 @@
 name: pages
 
-# Build the site and publish it to GitHub Pages whenever data or the site
-# changes on main (the nightly commit triggers this too).
+# Build the site and publish it to GitHub Pages when the site or data changes
+# on main, and after every successful nightly run. The nightly pushes its
+# data commit with GITHUB_TOKEN, and pushes made with that token do not start
+# other workflows, so the push trigger alone never saw the nightly data.
+#
+# Nothing deploys until the tests and the offline verifier pass on the commit
+# being published: a push to main that fails them leaves the live site as is.
 
 on:
   push:
     branches: [main]
-    paths: ["site/**", "data/**", ".github/workflows/pages.yml"]
+    paths: ["site/**", "data/**", "freeze_ledger/**", "verify.py", ".github/workflows/pages.yml"]
+  workflow_run:
+    workflows: [nightly]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -19,7 +28,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check:
+    # a failed nightly committed nothing, so there is nothing new to publish
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: python -m pytest -q
+      - name: Verify the data being published (offline)
+        run: python verify.py --offline
   build:
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +54,7 @@ jobs:
           cache-dependency-path: site/package-lock.json
       - run: npm ci
         working-directory: site
+      # `npm run build` typechecks (tsc -b) before bundling
       - run: npm run build
         working-directory: site
         env:
