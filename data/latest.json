@@ -1,10 +1,10 @@
 {
   "attribution_coverage": {
-    "frozen_addresses": 13246,
+    "frozen_addresses": 13249,
     "high": 715,
     "low": 0,
     "moderate": 59,
-    "unattributed": 12472,
+    "unattributed": 12475,
     "unattributed_share": 0.9416
   },
   "attribution_coverage_by_chain": {
@@ -25,8 +25,8 @@
     },
     "tron": {
       "attributed": 341,
-      "frozen_addresses": 8933,
-      "unattributed": 8592
+      "frozen_addresses": 8936,
+      "unattributed": 8595
     }
   },
   "by_chain_action": {
@@ -45,7 +45,7 @@
     },
     "tron": {
       "destroy": 1223,
-      "freeze": 8970,
+      "freeze": 8973,
       "unfreeze": 981
     }
   },
@@ -63,12 +63,12 @@
     },
     "tether": {
       "attributed_addresses": 557,
-      "currently_frozen": 10784,
+      "currently_frozen": 10787,
       "destroyed_total": "1402320590.450255",
       "destroys": 2468,
-      "events": 15938,
-      "freezes": 12142,
-      "frozen_addresses": 12095,
+      "events": 15941,
+      "freezes": 12145,
+      "frozen_addresses": 12098,
       "released_addresses": 1327,
       "unfreezes": 1328
     }
@@ -80,7 +80,7 @@
     },
     "USDT": {
       "destroy": 2468,
-      "freeze": 12142,
+      "freeze": 12145,
       "unfreeze": 1328
     }
   },
@@ -103,7 +103,7 @@
         "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6082465,
         "0xdac17f958d2ee523a2206206994597c13d831ec7": 4634748
       },
-      "last_block": 26218136
+      "last_block": 26225581
     },
     "solana": {
       "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": {
@@ -139,7 +139,7 @@
     },
     "tron": {
       "last_ts": {
-        "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:AddedBlackList": 1792184832000,
+        "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:AddedBlackList": 1792327911000,
         "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:DestroyedBlackFunds": 1791998667000,
         "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:RemovedBlackList": 1792166664000
       }
@@ -199,10 +199,10 @@
     "tron:USDT": {
       "chain": "tron",
       "complete": true,
-      "events": 11174,
+      "events": 11177,
       "first": "2020-06-26T15:55:54Z",
       "issuer": "tether",
-      "last": "2026-10-16T21:07:12Z",
+      "last": "2026-10-18T12:51:51Z",
       "note": "",
       "token": "USDT"
     }
@@ -282,9 +282,9 @@
           "last": "2026-10-14T17:24:27Z"
         },
         "USDT:freeze": {
-          "events": 8971,
+          "events": 8974,
           "first": "2020-06-26T15:22:39Z",
-          "last": "2026-10-16T21:07:12Z"
+          "last": "2026-10-18T12:51:51Z"
         },
         "USDT:unfreeze": {
           "events": 981,
@@ -292,9 +292,9 @@
           "last": "2026-10-16T16:04:24Z"
         }
       },
-      "events": 11210,
+      "events": 11213,
       "first": "2020-06-26T15:22:39Z",
-      "last": "2026-10-16T21:07:12Z"
+      "last": "2026-10-18T12:51:51Z"
     }
   },
   "currently_frozen": {
@@ -309,32 +309,35 @@
       "USDC": 22
     },
     "tron": {
-      "USDT": 7965
+      "USDT": 7968
     }
   },
   "currently_frozen_split": {
     "balance_destroyed": 2391,
-    "balance_held": 9571
+    "balance_held": 9574
   },
-  "currently_frozen_total": 11962,
+  "currently_frozen_total": 11965,
   "destroyed_usdt_by_chain": {
     "ethereum": "818478019.343261",
     "tron": "583842571.106994"
   },
   "events_issuer_internal": 80,
-  "events_public": 17790,
-  "events_total": 17870,
+  "events_public": 17793,
+  "events_total": 17873,
   "files": {
     "attributions.csv": {
+      "bytes": 717454,
       "rows": 1872,
       "sha256": "98682cdaed6448ccf1ddc3b83ac33d62bebf412b69587e26d1a171fd02a200ff"
     },
     "evidence.csv": {
-      "sha256": "778e6d620c68c4699489815714cb9456ef1b229a1a2dae8c909d6a23c619a397"
+      "bytes": 118687,
+      "sha256": "08d70162170122ac81726b8880498b27fd360de4aa594c61b194230dbe1256ad"
     },
     "freeze_events.csv": {
-      "rows": 17870,
-      "sha256": "5190259fbd36d2bab40e0b52174f22d9cfc2ce4ae02c1df5375768c2f0a4ecbf"
+      "bytes": 5066441,
+      "rows": 17873,
+      "sha256": "cd629de1c9405642aff96f4cc663f97c9b20cb8bd22e8ebb46c89bda1bcd07df"
     }
   },
   "freeze_to_destroy_days": {
@@ -351,7 +354,7 @@
     "p25": 42.1,
     "p75": 415.0
   },
-  "generated_at": "2026-10-18T08:08:27Z",
+  "generated_at": "2026-10-19T09:02:21Z",
   "last_run": {
     "backfill": {
       "at": "2026-10-15T21:17:49Z",
@@ -371,17 +374,17 @@
       ]
     },
     "run": {
-      "at": "2026-10-18T08:08:08Z",
+      "at": "2026-10-19T09:02:00Z",
       "chains": [
         {
           "calls": 3,
           "chain": "ethereum",
-          "cursor_from": "26210832",
-          "cursor_to": "26218136",
+          "cursor_from": "26218073",
+          "cursor_to": "26225581",
           "events_new": 0,
           "events_seen": 0,
           "notes": [],
-          "seconds": 0.9
+          "seconds": 1.0
         },
         {
           "chain": "base",
@@ -391,13 +394,13 @@
           "calls": 3,
           "chain": "tron",
           "cursor_from": "1792184532000",
-          "cursor_to": "1792310877702",
-          "events_new": 0,
-          "events_seen": 13,
+          "cursor_to": "1792400500394",
+          "events_new": 3,
+          "events_seen": 16,
           "notes": [
             "no TronGrid API key (FL_TRON_API_KEY); using the keyless rate limit"
           ],
-          "seconds": 9.5
+          "seconds": 19.7
         },
         {
           "calls": 3,
@@ -407,7 +410,7 @@
           "events_new": 0,
           "events_seen": 0,
           "notes": [],
-          "seconds": 0.9
+          "seconds": 0.8
         }
       ]
     }
@@ -1027,7 +1030,7 @@
       "ethereum": 35,
       "month": "2026-10",
       "solana": 2,
-      "tron": 279
+      "tron": 282
     }
   ],
   "multi_chain_addresses": 576,
