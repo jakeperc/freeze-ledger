@@ -2,7 +2,7 @@
 
 An open, reproducible dataset of every address Tether and Circle have frozen or unfrozen on **Ethereum, Base, Tron and Solana**, read directly from the chain, with each freeze joined to the public record that explains it (OFAC SDN entry, Federal Register notice, DOJ filing, issuer statement) and graded on an ICD-203 confidence scale — or marked *unattributed* when no public record was found.
 
-It is a dataset first, with a page on top. Every number is derived from a chain response whose raw bytes are hashed and kept, and the published figures are re-derived by a public verification suite before anything is committed.
+It is a dataset first, with a page on top: **https://freeze-ledger.jakepercy.com/**. Every number is derived from a chain response whose raw bytes are hashed and kept, and the published figures are re-derived by a public verification suite before anything is committed.
 
 > **Status: v0.1.** Ethereum, Base, Tron and Solana USDC are indexed (see *Status* below for exact coverage); Solana USDT is not yet run. Every published figure passes `verify.py`.
 
@@ -134,7 +134,7 @@ As of 2026-10-16 (Ethereum + Base: Etherscan `getLogs` bootstrap plus the RPC ba
 
 ## Roadmap
 
-Open work is tracked in [issues](https://github.com/jakeperc/freeze-ledger/issues): serving the page under jakepercy.com, Solana USDT, and an in-browser SQL panel.
+Open work is tracked in [issues](https://github.com/jakeperc/freeze-ledger/issues): Solana USDT, and an in-browser SQL panel.
 
 ## License and citation
 

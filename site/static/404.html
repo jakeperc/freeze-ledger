@@ -12,11 +12,11 @@
       p { color: #a9a9c4; }
     </style>
     <script>
-      // GitHub Pages serves this for any unknown path under the project. Send
-      // the visitor to the page itself, keeping any ?a= / ?e= / #section.
+      // GitHub Pages serves this for any unknown path on the site. Send the
+      // visitor to the page itself, keeping any ?a= / ?e= / #section. The
+      // build writes the site's base path in for __BASE__.
       (function () {
-        var seg = location.pathname.split("/")[1];
-        var base = seg ? "/" + seg + "/" : "/";
+        var base = "__BASE__";
         if (location.pathname !== base) location.replace(base + location.search + location.hash);
       })();
     </script>
@@ -24,7 +24,7 @@
   <body>
     <main>
       <h1>Not found</h1>
-      <p>There is no page at this address. The ledger is at <a href="/freeze-ledger/">/freeze-ledger/</a>.</p>
+      <p>There is no page at this address. The ledger is <a href="__BASE__">here</a>.</p>
     </main>
   </body>
 </html>

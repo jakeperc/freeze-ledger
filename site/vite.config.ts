@@ -1,15 +1,17 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { cpSync, existsSync, readFileSync, statSync } from "node:fs";
+import { cpSync, existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
 
-// The site is published on GitHub Pages at /freeze-ledger/. The repo's data/
+// The site is published on GitHub Pages at the root of freeze-ledger.jakepercy.com
+// (the custom domain in the repo's Pages settings; jakeperc.github.io/freeze-ledger/
+// redirects there). The repo's data/
 // folder is served as static files next to the page, so the CSVs are the
 // downloads and latest.json / site.json are what the scene reads. The page's
 // own static files (share card, icons, manifest, 404) live in site/static.
-const BASE = process.env.FL_BASE ?? "/freeze-ledger/";
-const SITE_URL = process.env.FL_SITE_URL ?? "https://jakeperc.github.io/freeze-ledger/";
+const BASE = process.env.FL_BASE ?? "/";
+const SITE_URL = process.env.FL_SITE_URL ?? "https://freeze-ledger.jakepercy.com/";
 const DATA = resolve(__dirname, "../data");
 const STATIC = resolve(__dirname, "static");
 
@@ -35,7 +37,10 @@ function staticFiles(): Plugin {
       });
     },
     writeBundle(options) {
-      if (options.dir) cpSync(STATIC, options.dir, { recursive: true });
+      if (!options.dir) return;
+      cpSync(STATIC, options.dir, { recursive: true });
+      const notFound = join(options.dir, "404.html");
+      writeFileSync(notFound, readFileSync(notFound, "utf-8").replaceAll("__BASE__", BASE));
     },
   };
 }

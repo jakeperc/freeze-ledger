@@ -1,13 +1,13 @@
 # Site
 
-The page at jakepercy.com/freeze-ledger/ and on GitHub Pages. React + Vite + TypeScript, Tailwind v4, React Three Fiber for the field, GSAP ScrollTrigger for the chapters, Framer Motion for the DOM, D3 scales for the charts, cmdk for ⌘K.
+The page at https://freeze-ledger.jakepercy.com/, served by GitHub Pages. React + Vite + TypeScript, Tailwind v4, React Three Fiber for the field, GSAP ScrollTrigger for the chapters, Framer Motion for the DOM, D3 scales for the charts, cmdk for ⌘K.
 
 ```bash
 cd site
 npm ci
 npm run dev        # reads ../data/ as static files
 npm run build      # -> dist/, with ../data/ copied beside the page
-FL_BASE=/ npm run build   # to host at a domain root
+FL_BASE=/freeze-ledger/ npm run build   # to host under a path instead of a domain root
 ```
 
 The page reads `latest.json`, `site.json`, `site_ids.json`, `attributions.csv` and `verification_report.json` from the repo's `data/` folder; `python -m freeze_ledger export` writes them. They load smallest first: the chapters render from `latest.json` (about 25 KB), the field from `site.json` (the columns it draws), and the lookup, registry and receipts once `site_ids.json` (every address and transaction hash) is in. Nothing on the page is typed by hand except sentence frames; every figure is a field of `latest.json`, which `verify.py` recomputes before any commit.
