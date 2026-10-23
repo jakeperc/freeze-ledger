@@ -17,17 +17,17 @@
     ]
   },
   "run": {
-    "at": "2026-10-22T08:43:22Z",
+    "at": "2026-10-23T16:37:01Z",
     "chains": [
       {
         "chain": "ethereum",
-        "events_seen": 8,
-        "events_new": 8,
-        "calls": 8,
-        "cursor_from": "26239762",
-        "cursor_to": "26247021",
+        "events_seen": 5,
+        "events_new": 5,
+        "calls": 7,
+        "cursor_from": "26246958",
+        "cursor_to": "26256549",
         "notes": [],
-        "seconds": 3.2
+        "seconds": 4.7
       },
       {
         "chain": "base",
@@ -35,25 +35,25 @@
       },
       {
         "chain": "tron",
-        "events_seen": 33,
-        "events_new": 25,
+        "events_seen": 38,
+        "events_new": 24,
         "calls": 3,
-        "cursor_from": "1792544223000",
-        "cursor_to": "1792658590421",
+        "cursor_from": "1792611327000",
+        "cursor_to": "1792773404595",
         "notes": [
           "no TronGrid API key (FL_TRON_API_KEY); using the keyless rate limit"
         ],
-        "seconds": 10.3
+        "seconds": 16.4
       },
       {
         "chain": "solana",
-        "events_seen": 1,
-        "events_new": 1,
+        "events_seen": 0,
+        "events_new": 0,
         "calls": 3,
         "cursor_from": "41322376",
         "cursor_to": "459806351",
         "notes": [],
-        "seconds": 1.4
+        "seconds": 0.5
       }
     ]
   }
