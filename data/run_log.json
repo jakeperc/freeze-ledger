@@ -17,33 +17,39 @@
     ]
   },
   "run": {
-    "at": "2026-10-23T16:37:01Z",
+    "at": "2026-10-24T08:08:20Z",
     "chains": [
       {
         "chain": "ethereum",
-        "events_seen": 5,
-        "events_new": 5,
-        "calls": 7,
-        "cursor_from": "26246958",
-        "cursor_to": "26256549",
+        "events_seen": 1,
+        "events_new": 0,
+        "calls": 3,
+        "cursor_from": "26256486",
+        "cursor_to": "26261182",
         "notes": [],
-        "seconds": 4.7
+        "seconds": 1.5
       },
       {
         "chain": "base",
-        "error": "403: {\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32602,\"message\":\"Archive requests require a personal token. Get one at: https://www.allnodes.com/publicnode\"},\"id\":2}\n (https://base-rpc.publicnode.com)"
+        "events_seen": 2,
+        "events_new": 1,
+        "calls": 71,
+        "cursor_from": "52355428",
+        "cursor_to": "53019889",
+        "notes": [],
+        "seconds": 139.7
       },
       {
         "chain": "tron",
-        "events_seen": 38,
-        "events_new": 24,
+        "events_seen": 15,
+        "events_new": 4,
         "calls": 3,
-        "cursor_from": "1792611327000",
-        "cursor_to": "1792773404595",
+        "cursor_from": "1792771188000",
+        "cursor_to": "1792829289759",
         "notes": [
           "no TronGrid API key (FL_TRON_API_KEY); using the keyless rate limit"
         ],
-        "seconds": 16.4
+        "seconds": 10.3
       },
       {
         "chain": "solana",
@@ -53,7 +59,7 @@
         "cursor_from": "41322376",
         "cursor_to": "459806351",
         "notes": [],
-        "seconds": 0.5
+        "seconds": 0.6
       }
     ]
   }
