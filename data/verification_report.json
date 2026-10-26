@@ -1,6 +1,6 @@
 {
-  "verified_at": "2026-10-25T08:24:37Z",
-  "seed": 20261025,
+  "verified_at": "2026-10-26T08:53:19Z",
+  "seed": 20261026,
   "offline": false,
   "events": 17990,
   "failed": 0,
@@ -38,7 +38,7 @@
     {
       "check": "chain.base",
       "status": "ok",
-      "detail": "5 sampled rows re-derived from https://base-rpc.publicnode.com"
+      "detail": "5 sampled rows re-derived from https://mainnet.base.org"
     },
     {
       "check": "chain.tron",
