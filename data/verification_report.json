@@ -1,24 +1,24 @@
 {
-  "verified_at": "2026-10-26T08:53:19Z",
-  "seed": 20261026,
+  "verified_at": "2026-10-27T08:58:35Z",
+  "seed": 20261027,
   "offline": false,
-  "events": 17990,
+  "events": 18003,
   "failed": 0,
   "checks": [
     {
       "check": "schema.rows",
       "status": "ok",
-      "detail": "17990 rows, unique canonical event_ids"
+      "detail": "18003 rows, unique canonical event_ids"
     },
     {
       "check": "receipts.index",
       "status": "ok",
-      "detail": "all 17990 rows have an indexed receipt"
+      "detail": "all 18003 rows have an indexed receipt"
     },
     {
       "check": "receipts.hash",
       "status": "ok",
-      "detail": "344 raw file(s) re-hashed; 0 not present locally (size cap or release asset)"
+      "detail": "346 raw file(s) re-hashed; 0 not present locally (size cap or release asset)"
     },
     {
       "check": "receipts.binding",
@@ -28,7 +28,7 @@
     {
       "check": "views.latest",
       "status": "ok",
-      "detail": "24 derived fields match (events_public=17910, frozen_now=12048)"
+      "detail": "24 derived fields match (events_public=17923, frozen_now=12061)"
     },
     {
       "check": "chain.ethereum",
