@@ -4,7 +4,7 @@
       "source": "etherscan_getlogs_pages",
       "through_block": 52355491
     },
-    "last_block": 53239198
+    "last_block": 53282466
   },
   "ethereum": {
     "backfill_cursor": 18900000,
@@ -17,7 +17,7 @@
       "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6082465,
       "0xdac17f958d2ee523a2206206994597c13d831ec7": 4634748
     },
-    "last_block": 26297625
+    "last_block": 26304811
   },
   "solana": {
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": {
@@ -46,14 +46,14 @@
       ],
       "backfill_done": true,
       "freeze_authority": "7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar",
-      "last_signature": "2YrBNgK5j3BB8cfCCiDwLNXNPSLGoodSRs7tSq3tXYPuXpQkX75o5eJbrbdPD8t9nJ75zigMPb4ravSEaD7VQTyQ",
-      "last_slot": 459806351,
+      "last_signature": "58wiP4jDXuK8WwEKgm5qgrMfS6yU4qV7ofbPD3pqmVANcRARBW9deLu6LGEHerJ31DutVLKgZEbKdNjWFCsrpUbe",
+      "last_slot": 463133762,
       "oldest_signature": "2JRVANJBWiEB2Amb8bBZ9Uk7sca9WRye2eoy728BotzPqRuiyX8S7aeUrVQZ3mTsd5nqrWyFsUC5hsoiWSpL5Pv3"
     }
   },
   "tron": {
     "last_ts": {
-      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:AddedBlackList": 1793206872000,
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:AddedBlackList": 1793320701000,
       "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:DestroyedBlackFunds": 1792774278000,
       "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:RemovedBlackList": 1793196438000
     }
