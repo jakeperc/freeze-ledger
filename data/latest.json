@@ -1,10 +1,10 @@
 {
   "attribution_coverage": {
-    "frozen_addresses": 13507,
+    "frozen_addresses": 13509,
     "high": 725,
     "low": 0,
     "moderate": 60,
-    "unattributed": 12722,
+    "unattributed": 12724,
     "unattributed_share": 0.9419
   },
   "attribution_coverage_by_chain": {
@@ -15,8 +15,8 @@
     },
     "ethereum": {
       "attributed": 219,
-      "frozen_addresses": 3734,
-      "unattributed": 3515
+      "frozen_addresses": 3736,
+      "unattributed": 3517
     },
     "solana": {
       "attributed": 2,
@@ -36,7 +36,7 @@
     },
     "ethereum": {
       "destroy": 1253,
-      "freeze": 4124,
+      "freeze": 4126,
       "unfreeze": 573
     },
     "solana": {
@@ -63,12 +63,12 @@
     },
     "tether": {
       "attributed_addresses": 565,
-      "currently_frozen": 11003,
+      "currently_frozen": 11005,
       "destroyed_total": "1406405235.400217",
       "destroys": 2488,
-      "events": 16196,
-      "freezes": 12371,
-      "frozen_addresses": 12323,
+      "events": 16198,
+      "freezes": 12373,
+      "frozen_addresses": 12325,
       "released_addresses": 1336,
       "unfreezes": 1337
     }
@@ -80,7 +80,7 @@
     },
     "USDT": {
       "destroy": 2488,
-      "freeze": 12371,
+      "freeze": 12373,
       "unfreeze": 1337
     }
   },
@@ -90,7 +90,7 @@
         "source": "etherscan_getlogs_pages",
         "through_block": 52355491
       },
-      "last_block": 53369661
+      "last_block": 53413923
     },
     "ethereum": {
       "backfill_cursor": 18900000,
@@ -103,7 +103,7 @@
         "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6082465,
         "0xdac17f958d2ee523a2206206994597c13d831ec7": 4634748
       },
-      "last_block": 26319293
+      "last_block": 26326645
     },
     "solana": {
       "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": {
@@ -169,10 +169,10 @@
     "ethereum:USDT": {
       "chain": "ethereum",
       "complete": true,
-      "events": 4794,
+      "events": 4796,
       "first": "2017-11-28T16:39:10Z",
       "issuer": "tether",
-      "last": "2026-10-30T13:36:35Z",
+      "last": "2026-11-01T12:21:35Z",
       "note": "",
       "token": "USDT"
     },
@@ -243,9 +243,9 @@
           "last": "2026-10-21T19:51:35Z"
         },
         "USDT:freeze": {
-          "events": 3195,
+          "events": 3197,
           "first": "2017-11-28T16:39:10Z",
-          "last": "2026-10-30T13:36:35Z"
+          "last": "2026-11-01T12:21:35Z"
         },
         "USDT:unfreeze": {
           "events": 347,
@@ -253,9 +253,9 @@
           "last": "2026-08-20T16:41:35Z"
         }
       },
-      "events": 5994,
+      "events": 5996,
       "first": "2017-11-28T16:39:10Z",
-      "last": "2026-10-31T00:51:47Z"
+      "last": "2026-11-01T12:21:35Z"
     },
     "solana": {
       "detail": {
@@ -303,7 +303,7 @@
     },
     "ethereum": {
       "USDC": 680,
-      "USDT": 2841
+      "USDT": 2843
     },
     "solana": {
       "USDC": 24
@@ -314,16 +314,16 @@
   },
   "currently_frozen_split": {
     "balance_destroyed": 2411,
-    "balance_held": 9810
+    "balance_held": 9812
   },
-  "currently_frozen_total": 12221,
+  "currently_frozen_total": 12223,
   "destroyed_usdt_by_chain": {
     "ethereum": "819845349.075379",
     "tron": "586559886.324838"
   },
   "events_issuer_internal": 80,
-  "events_public": 18088,
-  "events_total": 18168,
+  "events_public": 18090,
+  "events_total": 18170,
   "files": {
     "attributions.csv": {
       "bytes": 722655,
@@ -331,13 +331,13 @@
       "sha256": "37965c2325f11829c9129d601beb55c6a04c85cd0ed5bee111d6526846c3abcd"
     },
     "evidence.csv": {
-      "bytes": 135324,
-      "sha256": "809509c6d02014383d7e975858eef0eb50c4a79e57e275c2a46df440944c1691"
+      "bytes": 136441,
+      "sha256": "4b2f451a62e7240ce3ebed7236bdce81f4c9e937d599b25d0b85d1a07fa1d2c4"
     },
     "freeze_events.csv": {
-      "bytes": 5148949,
-      "rows": 18168,
-      "sha256": "b4b5537d58e313e7352829390d2e586907073c1dee57ab6d3fd4cc41646da06f"
+      "bytes": 5149539,
+      "rows": 18170,
+      "sha256": "9651fe0134267b3e704ce23abdae09c2d8df54e0797db1a213bb42554fac913c"
     }
   },
   "freeze_to_destroy_days": {
@@ -354,7 +354,7 @@
     "p25": 42.1,
     "p75": 415.0
   },
-  "generated_at": "2026-11-01T10:25:43Z",
+  "generated_at": "2026-11-02T11:01:13Z",
   "last_run": {
     "backfill": {
       "at": "2026-10-15T21:17:49Z",
@@ -374,39 +374,39 @@
       ]
     },
     "run": {
-      "at": "2026-11-01T10:25:22Z",
+      "at": "2026-11-02T11:00:56Z",
       "chains": [
         {
-          "calls": 3,
+          "calls": 4,
           "chain": "ethereum",
-          "cursor_from": "26311812",
-          "cursor_to": "26319293",
-          "events_new": 0,
-          "events_seen": 0,
+          "cursor_from": "26319230",
+          "cursor_to": "26326645",
+          "events_new": 2,
+          "events_seen": 2,
           "notes": [],
-          "seconds": 0.8
+          "seconds": 1.5
         },
         {
           "calls": 7,
           "chain": "base",
-          "cursor_from": "53324935",
-          "cursor_to": "53369661",
+          "cursor_from": "53369598",
+          "cursor_to": "53413923",
           "events_new": 0,
           "events_seen": 0,
           "notes": [],
-          "seconds": 7.9
+          "seconds": 14.9
         },
         {
           "calls": 3,
           "chain": "tron",
           "cursor_from": "1793398059000",
-          "cursor_to": "1793528701886",
+          "cursor_to": "1793617232103",
           "events_new": 0,
           "events_seen": 7,
           "notes": [
             "no TronGrid API key (FL_TRON_API_KEY); using the keyless rate limit"
           ],
-          "seconds": 19.6
+          "seconds": 18.7
         },
         {
           "calls": 3,
@@ -416,7 +416,7 @@
           "events_new": 0,
           "events_seen": 0,
           "notes": [],
-          "seconds": 0.5
+          "seconds": 5.2
         }
       ]
     }
@@ -1037,6 +1037,13 @@
       "month": "2026-10",
       "solana": 4,
       "tron": 486
+    },
+    {
+      "base": 0,
+      "ethereum": 2,
+      "month": "2026-11",
+      "solana": 0,
+      "tron": 0
     }
   ],
   "multi_chain_addresses": 586,
