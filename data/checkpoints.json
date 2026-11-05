@@ -4,7 +4,7 @@
       "source": "etherscan_getlogs_pages",
       "through_block": 52355491
     },
-    "last_block": 53500096
+    "last_block": 53543246
   },
   "ethereum": {
     "backfill_cursor": 18900000,
@@ -17,7 +17,7 @@
       "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6082465,
       "0xdac17f958d2ee523a2206206994597c13d831ec7": 4634748
     },
-    "last_block": 26340960
+    "last_block": 26348135
   },
   "solana": {
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": {
@@ -53,9 +53,9 @@
   },
   "tron": {
     "last_ts": {
-      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:AddedBlackList": 1793762007000,
-      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:DestroyedBlackFunds": 1793661123000,
-      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:RemovedBlackList": 1793717985000
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:AddedBlackList": 1793839782000,
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:DestroyedBlackFunds": 1793807778000,
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t:RemovedBlackList": 1793803374000
     }
   }
 }
