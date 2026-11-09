@@ -90,7 +90,7 @@
         "source": "etherscan_getlogs_pages",
         "through_block": 52355491
       },
-      "last_block": 54713227
+      "last_block": 55166448
     },
     "ethereum": {
       "backfill_cursor": 18900000,
@@ -103,7 +103,7 @@
         "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6082465,
         "0xdac17f958d2ee523a2206206994597c13d831ec7": 4634748
       },
-      "last_block": 26369486
+      "last_block": 26377020
     },
     "solana": {
       "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": {
@@ -331,8 +331,8 @@
       "sha256": "d960599aca8c068c5b33acf5fc9c15c12f840f605989867cb3ee48d2f986456a"
     },
     "evidence.csv": {
-      "bytes": 145723,
-      "sha256": "d03dc7f4e5bec511e5bb39868601df401c8a008303ddbdc5175844855c0e839a"
+      "bytes": 146566,
+      "sha256": "36221edfb8da3e5d73466edd71b6a2c5a1608239b2a4c47cc57a7c1ad1675b64"
     },
     "freeze_events.csv": {
       "bytes": 5186464,
@@ -354,7 +354,7 @@
     "p25": 42.1,
     "p75": 415.0
   },
-  "generated_at": "2026-11-08T10:17:50Z",
+  "generated_at": "2026-11-09T11:28:32Z",
   "last_run": {
     "backfill": {
       "at": "2026-10-15T21:17:49Z",
@@ -374,39 +374,39 @@
       ]
     },
     "run": {
-      "at": "2026-11-08T10:17:33Z",
+      "at": "2026-11-09T11:28:15Z",
       "chains": [
         {
           "calls": 3,
           "chain": "ethereum",
-          "cursor_from": "26362177",
-          "cursor_to": "26369486",
+          "cursor_from": "26369423",
+          "cursor_to": "26377020",
           "events_new": 0,
           "events_seen": 0,
           "notes": [],
-          "seconds": 0.8
+          "seconds": 1.2
         },
         {
-          "calls": 46,
+          "calls": 47,
           "chain": "base",
-          "cursor_from": "54277031",
-          "cursor_to": "54713227",
+          "cursor_from": "54713164",
+          "cursor_to": "55166448",
           "events_new": 0,
           "events_seen": 0,
           "notes": [],
-          "seconds": 9.5
+          "seconds": 18.3
         },
         {
           "calls": 3,
           "chain": "tron",
-          "cursor_from": "1794014973000",
-          "cursor_to": "1794133032844",
-          "events_new": 1,
-          "events_seen": 23,
+          "cursor_from": "1794051489000",
+          "cursor_to": "1794223685749",
+          "events_new": 0,
+          "events_seen": 17,
           "notes": [
             "no TronGrid API key (FL_TRON_API_KEY); using the keyless rate limit"
           ],
-          "seconds": 19.9
+          "seconds": 9.2
         },
         {
           "calls": 3,
@@ -416,7 +416,7 @@
           "events_new": 0,
           "events_seen": 0,
           "notes": [],
-          "seconds": 0.7
+          "seconds": 1.0
         }
       ]
     }
