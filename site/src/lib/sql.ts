@@ -24,7 +24,9 @@ export interface TableSpec {
   select: string;
 }
 
-const t = (col: string, type: string) => `TRY_CAST(NULLIF(${col}, '') AS ${type}) AS ${col}`;
+// CAST, not TRY_CAST: a malformed cell stops the load with DuckDB's own error
+// instead of quietly becoming NULL and undercounting every query after it
+const t = (col: string, type: string) => `CAST(NULLIF(${col}, '') AS ${type}) AS ${col}`;
 
 export const TABLES: TableSpec[] = [
   {
@@ -112,6 +114,26 @@ export async function start(onStep: (step: string) => void): Promise<Engine> {
   });
   const worker = new Worker(bundle.mainWorker!);
   const db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), worker);
+  try {
+    return await open(db, worker, bundle, onStep);
+  } catch (e) {
+    // a failed start leaves nothing running: the next press starts clean
+    await db.terminate().catch(() => {});
+    worker.terminate();
+    throw e;
+  }
+}
+
+/** Arrow types the table shows as they come; anything else (intervals,
+ *  lists, structs, maps, times) is rendered by DuckDB itself as text. */
+const SIMPLE = /^(Utf8|LargeUtf8|Bool|Int|Uint|Float|Decimal|Timestamp|Date|Null)/;
+
+async function open(
+  db: duckdb.AsyncDuckDB,
+  worker: Worker,
+  bundle: duckdb.DuckDBBundle,
+  onStep: (step: string) => void,
+): Promise<Engine> {
   await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
   const conn = await db.connect();
   const version = String((await conn.query("SELECT version() AS v")).toArray()[0]?.v ?? "");
@@ -135,7 +157,17 @@ export async function start(onStep: (step: string) => void): Promise<Engine> {
     rows,
     async run(sql: string) {
       const t0 = performance.now();
-      const table = await conn.query(sql);
+      let table = await conn.query(sql);
+      if (table.schema.fields.some((f) => !SIMPLE.test(String(f.type)))) {
+        // re-run with every column cast to text, so an INTERVAL or a list of
+        // DECIMALs reads as DuckDB prints it, not as raw Arrow parts
+        const inner = sql.trim().replace(/;s*$/, "");
+        try {
+          table = await conn.query(`SELECT CAST(COLUMNS(*) AS VARCHAR) FROM (${inner}) AS q`);
+        } catch {
+          /* not a plain SELECT: keep the first result */
+        }
+      }
       const fields = table.schema.fields;
       const types = fields.map((f) => String(f.type));
       const scales = fields.map((f) => (f.type as { scale?: number }).scale ?? 0);

@@ -67,31 +67,47 @@ ORDER BY frozen_addresses DESC`,
   },
   {
     label: "Sanctions programs behind attributed freezes",
-    sql: `SELECT program, count(DISTINCT address) AS addresses, min(record_date) AS earliest_record
-FROM attributions
-WHERE source_class = 'ofac_sdn' AND program IS NOT NULL
-GROUP BY program
+    sql: `-- program holds one or more codes separated by ';', so each code is counted on its own
+SELECT trim(p) AS program, count(DISTINCT address) AS addresses, min(record_date) AS earliest_record
+FROM attributions, unnest(string_split(program, ';')) AS t(p)
+WHERE source_class = 'ofac_sdn' AND program IS NOT NULL AND trim(p) <> ''
+GROUP BY ALL
 ORDER BY addresses DESC`,
   },
   {
     label: "Days from OFAC listing to first freeze",
-    sql: `-- only addresses whose listing is known to the day (not_before is set only for those);
--- negative values are freezes made before OFAC named the address. EVM addresses match on
--- lowercase, Tron's base58 is case-sensitive and matches exactly; Solana is left out because
--- OFAC lists the wallet and the issuer freezes a token account
-WITH first_freeze AS (
-  SELECT chain, address, min(block_time)::DATE AS frozen
-  FROM events WHERE action = 'freeze' AND NOT issuer_internal AND chain <> 'solana'
+    sql: `-- the rules of latest.json's sdn_listing_lag_days: a lane is one issuer on one chain;
+-- only listings known to the day (not_before is set only for those) and made after the
+-- lane's first event, so a chain that launched later does not read as a slow issuer;
+-- a freeze or a destroy counts. Negative values are freezes made before OFAC named the
+-- address. EVM addresses match on lowercase, Tron's case-sensitive base58 exactly;
+-- Solana is left out (OFAC lists the wallet, the issuer freezes a token account)
+WITH lane_start AS (
+  SELECT issuer, chain, min(block_time)::DATE AS started
+  FROM events WHERE NOT issuer_internal GROUP BY ALL
+), first_freeze AS (
+  SELECT issuer, chain, address, min(block_time)::DATE AS frozen
+  FROM events
+  WHERE action IN ('freeze', 'destroy') AND NOT issuer_internal AND chain <> 'solana'
   GROUP BY ALL
+), lags AS (
+  SELECT f.issuer, f.chain, f.address, h.first_seen AS listed, f.frozen,
+         date_diff('day', h.first_seen, f.frozen) AS days_after_listing
+  FROM sdn_history h
+  JOIN first_freeze f
+    ON (h.chain_hint = 'evm' AND f.chain IN ('ethereum', 'base') AND lower(f.address) = lower(h.address_norm))
+    OR (h.chain_hint = 'tron' AND f.chain = 'tron' AND f.address = h.address_norm)
+  JOIN lane_start l USING (issuer, chain)
+  WHERE h.not_before IS NOT NULL AND h.first_seen > l.started
 )
-SELECT f.chain, f.address, h.first_seen AS listed, f.frozen,
-       date_diff('day', h.first_seen, f.frozen) AS days_after_listing
-FROM sdn_history h
-JOIN first_freeze f
-  ON (h.chain_hint = 'evm' AND f.chain IN ('ethereum', 'base') AND lower(f.address) = lower(h.address_norm))
-  OR (h.chain_hint = 'tron' AND f.chain = 'tron' AND f.address = h.address_norm)
-WHERE h.not_before IS NOT NULL
-ORDER BY days_after_listing`,
+-- one row per lane; drop the GROUP BY to see every address
+SELECT issuer, chain, count(*) AS addresses,
+       -- the lower median, as latest.json computes it
+       list_sort(list(days_after_listing))[1 + ((count(*) - 1) // 2)] AS median_days,
+       count(*) FILTER (WHERE days_after_listing < -7) AS frozen_over_a_week_before_listing
+FROM lags
+GROUP BY ALL
+ORDER BY issuer, chain`,
   },
 ];
 
@@ -116,41 +132,54 @@ export function Query() {
   const engine = useRef<Engine | null>(null);
   const phone = useMedia("(max-width: 767px)");
 
+  // one engine per page: every caller awaits the same start, so a second
+  // Ctrl+Enter during the download cannot start a second worker
+  const starting = useRef<Promise<Engine | null> | null>(null);
+  // each run takes a ticket; only the newest run may write the result
+  const ticket = useRef(0);
+
   useEffect(() => () => { engine.current?.close(); }, []);
 
-  const load = async (): Promise<Engine | null> => {
-    if (engine.current) return engine.current;
+  const load = (): Promise<Engine | null> => {
+    if (engine.current) return Promise.resolve(engine.current);
+    if (starting.current) return starting.current;
     setPhase({ kind: "loading", step: "Downloading the SQL engine" });
-    try {
-      const { start } = await import("../lib/sql");
-      engine.current = await start((step) => setPhase({ kind: "loading", step }));
-      setPhase({ kind: "ready" });
-      return engine.current;
-    } catch (e) {
-      setPhase({ kind: "failed", error: e instanceof Error ? e.message : String(e) });
-      return null;
-    }
+    starting.current = (async () => {
+      try {
+        const { start } = await import("../lib/sql");
+        engine.current = await start((step) => setPhase({ kind: "loading", step }));
+        setPhase({ kind: "ready" });
+        return engine.current;
+      } catch (e) {
+        setPhase({ kind: "failed", error: e instanceof Error ? e.message : String(e) });
+        starting.current = null; // a later press may retry; start() has closed its worker
+        return null;
+      }
+    })();
+    return starting.current;
   };
 
   const run = async (text = sql) => {
-    if (running) return;
+    const mine = ++ticket.current;
     const eng = await load();
-    if (!eng) return;
+    if (!eng || mine !== ticket.current) return;
     setRunning(true);
     setError(null);
+    setResult(null);
     try {
-      setResult(await eng.run(text));
+      const r = await eng.run(text);
+      if (mine === ticket.current) setResult(r);
     } catch (e) {
-      setResult(null);
-      setError(e instanceof Error ? e.message : String(e));
+      if (mine === ticket.current) setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setRunning(false);
+      if (mine === ticket.current) setRunning(false);
     }
   };
 
   const pick = (s: string) => {
     setSql(s);
     if (engine.current) run(s);
+    else setResult(null);
   };
 
   const download = () => {

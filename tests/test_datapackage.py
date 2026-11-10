@@ -30,6 +30,8 @@ def _ok(type_: str, v: str) -> bool:
         elif type_ == "date":
             date.fromisoformat(v)
         elif type_ == "datetime":
+            if "T" not in v:  # Python 3.11+ would accept a bare date here
+                return False
             datetime.fromisoformat(v.replace("Z", "+00:00"))
         return True
     except (ValueError, InvalidOperation):
@@ -38,8 +40,13 @@ def _ok(type_: str, v: str) -> bool:
 
 def _rows(res):
     with open(ROOT / res["path"], encoding="utf-8", newline="") as f:
-        reader = csv.DictReader(f)
-        return reader.fieldnames, list(reader)
+        reader = csv.DictReader(f, restkey="__extra__", restval=None)
+        rows = list(reader)
+    # a short row would read its missing columns as None, which no check sees;
+    # a long one would put the overflow under restkey
+    for i, r in enumerate(rows):
+        assert None not in r.values() and "__extra__" not in r, f"{res['path']} row {i + 2} has the wrong number of columns"
+    return reader.fieldnames, rows
 
 
 def test_every_data_csv_is_described():
