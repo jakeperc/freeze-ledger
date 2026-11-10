@@ -65,6 +65,7 @@ export function Palette({ ledger }: { ledger: Ledger | null }) {
             <Item onSelect={() => go("#patterns")}>Patterns</Item>
             <Item onSelect={() => go("#verification")}>Verification</Item>
             <Item onSelect={() => go("#screen")}>Screen a list</Item>
+            <Item onSelect={() => go("#query")}>Query the ledger in SQL</Item>
             <Item onSelect={() => go("#method")}>Method and downloads</Item>
           </Command.Group>
           <Command.Group heading="Arrange the field" className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:text-paper-3">
