@@ -57,8 +57,10 @@ jobs:
         run: python verify.py --sample 5 2>&1 | tee -a run.log
 
       # the README's Status block is rendered from data/latest.json alone, so it
-      # can only say what the verified export says (scripts/readme_status.py)
+      # can only say what the verified export says (scripts/readme_status.py).
+      # Cosmetic: a failure here must not hold back the verified data.
       - name: Refresh README status
+        continue-on-error: true
         run: python scripts/readme_status.py 2>&1 | tee -a run.log
 
       - name: Commit and tag
