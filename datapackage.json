@@ -1,0 +1,547 @@
+{
+  "profile": "tabular-data-package",
+  "name": "freeze-ledger",
+  "title": "Freeze Ledger",
+  "description": "Every USDT and USDC issuer freeze, release and destroyed balance on Ethereum, Base, Tron and Solana, read from the chain nightly, with a receipt for each row and graded links to the public record (OFAC SDN, Federal Register, DOJ, court, issuer). Methodology: METHODOLOGY.md.",
+  "homepage": "https://freeze-ledger.jakepercy.com/",
+  "keywords": [
+    "stablecoin",
+    "USDT",
+    "USDC",
+    "Tether",
+    "Circle",
+    "blacklist",
+    "freeze",
+    "OFAC",
+    "sanctions"
+  ],
+  "licenses": [
+    {
+      "name": "CC-BY-4.0",
+      "path": "https://creativecommons.org/licenses/by/4.0/",
+      "title": "Creative Commons Attribution 4.0"
+    }
+  ],
+  "contributors": [
+    {
+      "title": "Jake Percy",
+      "role": "author",
+      "path": "https://github.com/jakeperc"
+    }
+  ],
+  "sources": [
+    {
+      "title": "Ethereum, Base and Solana public RPC endpoints; TronGrid"
+    },
+    {
+      "title": "OFAC SDN list (sdn_advanced.xml)",
+      "path": "https://www.treasury.gov/ofac/downloads/sanctions/1.0/sdn_advanced.xml"
+    },
+    {
+      "title": "0xB10C nightly SDN digital-currency address extract (git history)",
+      "path": "https://github.com/0xB10C/ofac-sanctioned-digital-currency-addresses"
+    }
+  ],
+  "resources": [
+    {
+      "name": "freeze_events",
+      "path": "data/freeze_events.csv",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "description": "One row per on-chain issuer action. Append-only, never back-revised.",
+      "schema": {
+        "primaryKey": "event_id",
+        "foreignKeys": [
+          {
+            "fields": "evidence_id",
+            "reference": {
+              "resource": "evidence",
+              "fields": "evidence_id"
+            }
+          }
+        ],
+        "missingValues": [
+          ""
+        ],
+        "fields": [
+          {
+            "name": "event_id",
+            "type": "string",
+            "description": "{chain}:{tx_hash}:{log_index}",
+            "constraints": {
+              "required": true,
+              "unique": true
+            }
+          },
+          {
+            "name": "chain",
+            "type": "string",
+            "constraints": {
+              "enum": [
+                "ethereum",
+                "base",
+                "tron",
+                "solana"
+              ],
+              "required": true
+            }
+          },
+          {
+            "name": "issuer",
+            "type": "string",
+            "constraints": {
+              "enum": [
+                "tether",
+                "circle"
+              ],
+              "required": true
+            }
+          },
+          {
+            "name": "token",
+            "type": "string",
+            "constraints": {
+              "enum": [
+                "USDT",
+                "USDC"
+              ],
+              "required": true
+            }
+          },
+          {
+            "name": "action",
+            "type": "string",
+            "constraints": {
+              "enum": [
+                "freeze",
+                "unfreeze",
+                "destroy"
+              ],
+              "required": true
+            }
+          },
+          {
+            "name": "address",
+            "type": "string",
+            "description": "Canonical per chain (EVM lowercase hex; Tron Base58Check; Solana Base58). On Solana, the token account",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "owner_address",
+            "type": "string",
+            "description": "Solana only: the wallet owning the token account"
+          },
+          {
+            "name": "amount",
+            "type": "number",
+            "description": "Destroy events only; token units with 6 decimals"
+          },
+          {
+            "name": "block_number",
+            "type": "integer",
+            "description": "Slot on Solana",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "block_time",
+            "type": "datetime",
+            "description": "ISO-8601 UTC",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "tx_hash",
+            "type": "string",
+            "description": "Signature on Solana",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "log_index",
+            "type": "integer",
+            "description": "Instruction position on Solana (outer*100 + inner+1)",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "issuer_internal",
+            "type": "boolean",
+            "description": "true when the address is the issuer's own contract or mint; empty otherwise"
+          },
+          {
+            "name": "evidence_id",
+            "type": "string",
+            "description": "Receipt in evidence.csv",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "indexed_at",
+            "type": "datetime",
+            "description": "First written; never updated",
+            "constraints": {
+              "required": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "attributions",
+      "path": "data/attributions.csv",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "description": "Graded links from frozen addresses to public records. A changed judgment appends a row and marks the old one in superseded_by; the standing judgments are the rows where superseded_by is empty.",
+      "schema": {
+        "primaryKey": "attribution_id",
+        "missingValues": [
+          ""
+        ],
+        "fields": [
+          {
+            "name": "attribution_id",
+            "type": "string",
+            "constraints": {
+              "required": true,
+              "unique": true
+            }
+          },
+          {
+            "name": "address",
+            "type": "string",
+            "description": "Join to freeze_events",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "chain",
+            "type": "string",
+            "description": "Join to freeze_events",
+            "constraints": {
+              "enum": [
+                "ethereum",
+                "base",
+                "tron",
+                "solana"
+              ],
+              "required": true
+            }
+          },
+          {
+            "name": "source_class",
+            "type": "string",
+            "constraints": {
+              "enum": [
+                "ofac_sdn",
+                "federal_register",
+                "doj",
+                "court",
+                "issuer",
+                "explorer_label",
+                "press",
+                "tracker"
+              ],
+              "required": true
+            }
+          },
+          {
+            "name": "entity",
+            "type": "string",
+            "description": "As the record states it"
+          },
+          {
+            "name": "program",
+            "type": "string",
+            "description": "Sanctions program code(s), ;-separated"
+          },
+          {
+            "name": "record_date",
+            "type": "date",
+            "description": "Date the record named the address"
+          },
+          {
+            "name": "confidence",
+            "type": "string",
+            "description": "high, moderate or low; rules in METHODOLOGY.md section 5",
+            "constraints": {
+              "enum": [
+                "high",
+                "moderate",
+                "low"
+              ],
+              "required": true
+            }
+          },
+          {
+            "name": "basis",
+            "type": "string",
+            "description": "Why this rating and not the next one up",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "evidence_url",
+            "type": "string",
+            "description": "The record",
+            "format": "uri"
+          },
+          {
+            "name": "judged_at",
+            "type": "date",
+            "description": "When the rating was assigned",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "superseded_by",
+            "type": "string",
+            "description": "attribution_id of the later judgment, or withdrawn:<date>"
+          }
+        ]
+      }
+    },
+    {
+      "name": "evidence",
+      "path": "data/evidence.csv",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "description": "Receipts: the SHA-256 and location of every raw response a row was derived from (raw bytes under evidence/raw/).",
+      "schema": {
+        "primaryKey": "evidence_id",
+        "missingValues": [
+          ""
+        ],
+        "fields": [
+          {
+            "name": "evidence_id",
+            "type": "string",
+            "description": "ev_ + first 16 hex of the SHA-256",
+            "constraints": {
+              "required": true,
+              "unique": true
+            }
+          },
+          {
+            "name": "kind",
+            "type": "string",
+            "constraints": {
+              "enum": [
+                "rpc_log",
+                "etherscan_log",
+                "trongrid_event",
+                "solana_tx",
+                "sdn_xml"
+              ],
+              "required": true
+            }
+          },
+          {
+            "name": "locator",
+            "type": "string",
+            "description": "Endpoint + method + range, API URL, or download URL and date",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "fetched_at",
+            "type": "datetime",
+            "description": "UTC",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "sha256",
+            "type": "string",
+            "description": "Of the raw bytes",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "bytes",
+            "type": "integer",
+            "description": "Size",
+            "constraints": {
+              "required": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "sdn_addresses",
+      "path": "data/sdn_addresses.csv",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "description": "OFAC SDN digital-currency addresses with entity, program(s) and the party's designation date, extracted from sdn_advanced.xml.",
+      "schema": {
+        "missingValues": [
+          ""
+        ],
+        "fields": [
+          {
+            "name": "asset",
+            "type": "string",
+            "description": "SDN asset code (e.g. USDT, ETH, TRX)",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "address",
+            "type": "string",
+            "description": "As listed",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "address_norm",
+            "type": "string",
+            "description": "Normalized for joining",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "chain_hint",
+            "type": "string",
+            "description": "Address family",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "entity",
+            "type": "string",
+            "description": "The party's primary name"
+          },
+          {
+            "name": "program",
+            "type": "string",
+            "description": "Program code(s), ;-separated"
+          },
+          {
+            "name": "listed_date",
+            "type": "date",
+            "description": "The party's earliest designation date, not the address's; see sdn_address_history"
+          },
+          {
+            "name": "fixed_ref",
+            "type": "string",
+            "description": "SDN FixedRef of the party"
+          },
+          {
+            "name": "feature_id",
+            "type": "string",
+            "description": "SDN feature id of the address"
+          },
+          {
+            "name": "source_url",
+            "type": "string",
+            "format": "uri"
+          }
+        ]
+      }
+    },
+    {
+      "name": "sdn_address_history",
+      "path": "data/sdn_address_history.csv",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "description": "When each SDN address was listed and, if it was, removed, read from the git history of the nightly SDN extract.",
+      "schema": {
+        "missingValues": [
+          ""
+        ],
+        "fields": [
+          {
+            "name": "chain_hint",
+            "type": "string",
+            "description": "Address family",
+            "constraints": {
+              "enum": [
+                "evm",
+                "tron",
+                "solana"
+              ],
+              "required": true
+            }
+          },
+          {
+            "name": "address_norm",
+            "type": "string",
+            "description": "Normalized address",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "assets",
+            "type": "string",
+            "description": "SDN asset codes it was listed under, ;-separated",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "first_seen",
+            "type": "date",
+            "description": "First nightly extract commit containing it: the latest it can have been listed",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "not_before",
+            "type": "date",
+            "description": "The day before first_seen when the listing is known to the day; empty when it is only bounded"
+          },
+          {
+            "name": "last_seen",
+            "type": "date",
+            "description": "Last commit containing it",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "removed_at",
+            "type": "date",
+            "description": "Commit that dropped it, if it is no longer listed"
+          },
+          {
+            "name": "first_commit",
+            "type": "string",
+            "description": "Commit in 0xB10C/ofac-sanctioned-digital-currency-addresses, branch lists",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "removed_commit",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

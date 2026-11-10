@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this dataset, please cite it as below, naming the dated release (tag vYYYY.MM.DD) you used."
+type: dataset
+title: "Freeze Ledger: an open, reproducible ledger of stablecoin issuer freezes"
+abstract: >-
+  Every address Tether and Circle have frozen or unfrozen on Ethereum, Base,
+  Tron and Solana, read directly from the chain, with a hashed receipt for
+  each row, each freeze joined to the public record that explains it (OFAC
+  SDN entry, Federal Register notice, DOJ filing, issuer statement) and graded
+  high, moderate or low, or marked unattributed. Verified nightly.
+authors:
+  - family-names: Percy
+    given-names: Jake
+repository-code: "https://github.com/jakeperc/freeze-ledger"
+url: "https://freeze-ledger.jakepercy.com/"
+license: CC-BY-4.0
+keywords:
+  - stablecoin
+  - USDT
+  - USDC
+  - Tether
+  - Circle
+  - blacklist
+  - OFAC
+  - sanctions
