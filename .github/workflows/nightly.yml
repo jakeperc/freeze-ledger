@@ -23,6 +23,16 @@ concurrency:
   group: nightly
   cancel-in-progress: false
 
+# Every step pipes into tee for the run log. Without pipefail a pipeline
+# takes tee's exit code, so a failing verify.py would not fail its step and
+# "Commit and tag" would push unverified data. `shell: bash` runs steps as
+# `bash --noprofile --norc -eo pipefail {0}`; the unspecified default is
+# `bash -e {0}`, which has no pipefail (GitHub Actions workflow syntax,
+# defaults.run.shell).
+defaults:
+  run:
+    shell: bash
+
 jobs:
   index:
     runs-on: ubuntu-latest

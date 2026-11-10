@@ -69,3 +69,22 @@ def test_check_mode(tmp_path):
 def test_committed_export_renders():
     latest = json.loads((ROOT / "data" / "latest.json").read_text(encoding="utf-8"))
     assert rs.render(latest).startswith("As of the export of " + latest["generated_at"][:10])
+
+
+def test_a_delisting_with_no_release_yet_renders():
+    # export.py writes median_days_after_removal: null until a frozen,
+    # delisted address is released; the README must not crash on it
+    latest = json.loads(json.dumps(LATEST))
+    latest["sdn_delisted"]["lanes"]["tether:tron"] = {"frozen_when_removed": 2, "released_after_removal": 0, "median_days_after_removal": None}
+    out = rs.render(latest)
+    assert "Tether on Tron released 0 of 2 (none released yet)" in out
+
+
+def test_every_piped_workflow_step_runs_with_pipefail():
+    # `cmd | tee log` takes tee's exit code unless pipefail is on; GitHub's
+    # unspecified shell is `bash -e {0}`, `shell: bash` adds -o pipefail
+    for wf in (ROOT / ".github" / "workflows").glob("*.yml"):
+        text = wf.read_text(encoding="utf-8")
+        if "| tee" not in text:
+            continue
+        assert "defaults:\n  run:\n    shell: bash" in text, f"{wf.name} pipes into tee without pipefail"

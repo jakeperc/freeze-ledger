@@ -56,7 +56,9 @@ def _days(d: float) -> str:
     return f"{d:g} day{'s' if d != 1 else ''}"
 
 
-def _after(d: float) -> str:
+def _after(d: float | None) -> str:
+    if d is None:  # the night after a delisting, before any release
+        return "none released yet"
     return "the same day as the removal" if d == 0 else f"{d:g} day{'s' if d != 1 else ''} after removal"
 
 
@@ -124,7 +126,11 @@ def render(latest: dict) -> str:
             f"- Addresses OFAC has removed: {_int(latest['sdn_delisted'].get('removed_addresses', 0))}; "
             + "; ".join(
                 f"{_issuer_lane(k)} released {_int(v['released_after_removal'])} of {_int(v['frozen_when_removed'])} "
-                f"(median {_after(v['median_days_after_removal'])})"
+                + (
+                    f"(median {_after(v['median_days_after_removal'])})"
+                    if v.get("median_days_after_removal") is not None
+                    else "(none released yet)"
+                )
                 for k, v in sorted(dl.items())
             )
         )
