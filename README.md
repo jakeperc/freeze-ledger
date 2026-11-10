@@ -2,7 +2,7 @@
 
 An open, reproducible dataset of every address Tether and Circle have frozen or unfrozen on **Ethereum, Base, Tron and Solana**, read directly from the chain, with each freeze joined to the public record that explains it (OFAC SDN entry, Federal Register notice, DOJ filing, issuer statement) and graded on an ICD-203 confidence scale — or marked *unattributed* when no public record was found.
 
-It is a dataset first, with a page on top: **https://freeze-ledger.jakepercy.com/**. Every number is derived from a chain response whose raw bytes are hashed and kept, and the published figures are re-derived by a public verification suite before anything is committed.
+It is a dataset first, with a page on top: **https://freeze-ledger.jakepercy.com/**. The page can also answer arbitrary questions: its **Query** section loads [DuckDB-WASM](https://duckdb.org/docs/api/wasm/overview) on demand and runs SQL over the same CSVs in the browser, with starter queries and CSV export. Every number is derived from a chain response whose raw bytes are hashed and kept, and the published figures are re-derived by a public verification suite before anything is committed.
 
 > **Status: v0.1.** Ethereum, Base, Tron and Solana USDC are indexed (see *Status* below for exact coverage); Solana USDT is not yet run. Every published figure passes `verify.py`.
 
@@ -20,7 +20,7 @@ It is a dataset first, with a page on top: **https://freeze-ledger.jakepercy.com
 
 Schema for all three tables is in [METHODOLOGY.md](METHODOLOGY.md#schema).
 
-Links into the page: `?a=<address>` opens a lookup, `?e=<event_id>` opens that event's receipt (the same `chain:tx:log` id as `freeze_events.csv`), and `r_*` parameters carry a filtered Registry view.
+Links into the page: `?a=<address>` opens a lookup, `?e=<event_id>` opens that event's receipt (the same `chain:tx:log` id as `freeze_events.csv`), `r_*` parameters carry a filtered Registry view, and `?sql=<query>#query` fills the SQL panel with a query (it runs only when the visitor presses Run).
 
 ## Reproduce it
 
@@ -123,21 +123,25 @@ address,chain,source_class,entity,program,record_date,evidence_url,match_basis,a
 
 ## Status
 
-As of 2026-10-16 (Ethereum + Base: Etherscan `getLogs` bootstrap plus the RPC backfill of pre-2024 USDT freezes; Tron: TronGrid backfill from the first event; Solana USDC: backfill of every freeze authority the mint has had; Solana USDT not yet run):
+<!-- status:start -->
+As of the export of 2026-11-10 (`data/latest.json`; regenerate with `python scripts/readme_status.py`):
 
-- Events indexed: **17,774** public (80 issuer-internal rows kept and flagged)
-- Addresses frozen now: **11,952** (Tron USDT 7,958, Ethereum USDT 2,816, Ethereum USDC 653, Base USDC 503, Solana USDC 22)
-- USDT destroyed after a freeze (all-time): **$1,402,320,590** (Ethereum $818,478,019, Tron $583,842,571)
-- Coverage: Ethereum USDT freezes, destroys and releases 2017-11-28 → 2026-10-15 (complete); Ethereum USDC freezes 2020-06-16 → 2026-10-12 (complete); Base USDC 2023-08-18 → 2026-10-08 (complete); Tron USDT freezes, destroys and releases 2020-06-26 → 2026-10-15 (complete); Solana USDC freezes and thaws 2022-11-11 → 2026-10-09 (complete: the history of all three freeze authorities the mint has had since it was created in 2020)
-- Attribution: **715** frozen addresses with a High attribution and **59** Moderate (frozen before their address was listed, or inside a listing window that cannot rule that out), graded on each address's own listing date and including addresses since removed from the list; **12,459** (94.2%) with no public record found yet
-- OFAC listing to freeze, addresses listed after 2022-09 (median days): Circle 0 on Ethereum and Base; Tether 107 on Ethereum and the same day on Tron, where it froze 44 addresses a week or more before they were listed. When OFAC removed 90 addresses on 2025-03-21, both issuers released every one within two days
+- Events indexed: **18,246** public (80 issuer-internal rows kept and flagged)
+- Addresses frozen now: **12,319** (Tron USDT 8,209, Ethereum USDT 2,862, Ethereum USDC 698, Base USDC 523, Solana USDC 27)
+- USDT destroyed after a freeze (all-time): **$1,445,002,258** (Ethereum $824,419,081, Tron $620,583,178)
+- Coverage, complete from each lane's first event: Base USDC 2023-08-18 → 2026-11-06; Ethereum USDC 2020-06-16 → 2026-11-06; Ethereum USDT 2017-11-28 → 2026-11-09; Solana USDC 2022-11-11 → 2026-11-07; Tron USDT 2020-06-26 → 2026-11-09
+- Not yet covered: Solana USDT (not indexed yet)
+- Attribution: **730** frozen addresses with a High attribution, **61** Moderate; **12,825** (94.2%) with no public record found yet
+- OFAC listing to freeze, addresses listed to the day (median; the nightly SDN extract records a listing up to a day late, so -1 is effectively the listing day): Circle on Base 1 day before listing (n=81); Circle on Ethereum the same day (n=149); Tether on Ethereum 107 days (n=149, 4 frozen more than a week before listing); Tether on Tron 1 day before listing (n=348, 46 frozen more than a week before listing)
+- Addresses OFAC has removed: 92; Circle on Base released 91 of 91 (median the same day as the removal); Circle on Ethereum released 92 of 92 (median the same day as the removal); Tether on Ethereum released 91 of 91 (median 2 days after removal)
+<!-- status:end -->
 
 ## Roadmap
 
-Open work is tracked in [issues](https://github.com/jakeperc/freeze-ledger/issues): Solana USDT, and an in-browser SQL panel.
+Open work is tracked in [issues](https://github.com/jakeperc/freeze-ledger/issues), chiefly Solana USDT.
 
 ## License and citation
 
-Code: MIT. Data (`data/`, `evidence/`): CC BY 4.0. Cite as *Percy, J. Freeze Ledger, release vYYYY.MM.DD, https://github.com/jakeperc/freeze-ledger*.
+Code: MIT. Data (`data/`, `evidence/`): CC BY 4.0. Cite as *Percy, J. Freeze Ledger, release vYYYY.MM.DD, https://github.com/jakeperc/freeze-ledger*. GitHub's "Cite this repository" button reads [`CITATION.cff`](CITATION.cff), and [`datapackage.json`](datapackage.json) describes every CSV as a [Frictionless Data Package](https://specs.frictionlessdata.io/data-package/) (column types, enums, keys); the test suite fails if the CSVs drift from it.
 
 Attributions are the author's assessment of public records, not the issuer's stated reason for any freeze. "No public record found" means exactly that.
