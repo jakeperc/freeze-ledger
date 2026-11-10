@@ -56,13 +56,18 @@ jobs:
       - name: Verify (gate)
         run: python verify.py --sample 5 2>&1 | tee -a run.log
 
+      # the README's Status block is rendered from data/latest.json alone, so it
+      # can only say what the verified export says (scripts/readme_status.py)
+      - name: Refresh README status
+        run: python scripts/readme_status.py 2>&1 | tee -a run.log
+
       - name: Commit and tag
         if: success()
         run: |
           set -e
           git config user.name "freeze-ledger nightly"
           git config user.email "noreply@users.noreply.github.com"
-          git add data/ evidence/raw/
+          git add data/ evidence/raw/ README.md
           if git diff --cached --quiet; then
             echo "no data changes tonight"
             exit 0

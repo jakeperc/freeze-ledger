@@ -132,7 +132,7 @@ As of the export of 2026-11-10 (`data/latest.json`; regenerate with `python scri
 - Coverage, complete from each lane's first event: Base USDC 2023-08-18 → 2026-11-06; Ethereum USDC 2020-06-16 → 2026-11-06; Ethereum USDT 2017-11-28 → 2026-11-09; Solana USDC 2022-11-11 → 2026-11-07; Tron USDT 2020-06-26 → 2026-11-09
 - Not yet covered: Solana USDT (not indexed yet)
 - Attribution: **730** frozen addresses with a High attribution, **61** Moderate; **12,825** (94.2%) with no public record found yet
-- OFAC listing to freeze, addresses listed to the day (median; the nightly SDN extract records a listing up to a day late, so -1 is effectively the listing day): Circle on Base 1 day before listing (n=81); Circle on Ethereum the same day (n=149); Tether on Ethereum 107 days (n=149, 4 frozen more than a week before listing); Tether on Tron 1 day before listing (n=348, 46 frozen more than a week before listing)
+- OFAC listing to freeze, addresses listed to the day (median; the nightly SDN extract records a listing up to a day late, so "1 day before listing" is effectively the listing day): Circle on Base 1 day before listing (n=81); Circle on Ethereum the same day (n=149); Tether on Ethereum 107 days (n=149, 4 frozen more than a week before listing); Tether on Tron 1 day before listing (n=348, 46 frozen more than a week before listing)
 - Addresses OFAC has removed: 92; Circle on Base released 91 of 91 (median the same day as the removal); Circle on Ethereum released 92 of 92 (median the same day as the removal); Tether on Ethereum released 91 of 91 (median 2 days after removal)
 <!-- status:end -->
 
