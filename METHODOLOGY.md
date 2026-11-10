@@ -140,7 +140,7 @@ The suite was made to fail on purpose during development by editing a stored add
 | Column | Type | Notes |
 | --- | --- | --- |
 | `evidence_id` | string | `ev_` + first 16 hex of the SHA-256 |
-| `kind` | enum | rpc_log, trongrid_event, solana_tx, sdn_xml |
+| `kind` | enum | rpc_log, etherscan_log, trongrid_event, solana_tx, sdn_xml (`etherscan_log` is the saved Etherscan `getLogs` pages of the 2026-10-15 bootstrap) |
 | `locator` | string | Endpoint + method + range, API URL, or download URL and date |
 | `fetched_at` | timestamp | UTC |
 | `sha256` | string | Of the raw bytes |

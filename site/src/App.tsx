@@ -8,6 +8,7 @@ import { Lookup } from "./sections/Lookup";
 import { Method } from "./sections/Method";
 import { Patterns } from "./sections/Patterns";
 import { Registry } from "./sections/Registry";
+import { Query } from "./sections/Query";
 import { Screen } from "./sections/Screen";
 import { Verification } from "./sections/Verification";
 import { ErrorBoundary } from "./ui/ErrorBoundary";
@@ -24,6 +25,7 @@ const SECTIONS = [
   ["patterns", "Patterns"],
   ["verification", "Verification"],
   ["screen", "Screen a list"],
+  ["query", "Query the ledger"],
   ["method", "Method, in short"],
 ] as const;
 const TITLE = Object.fromEntries(SECTIONS) as Record<(typeof SECTIONS)[number][0], string>;
@@ -161,6 +163,8 @@ export function App() {
             <Guard id="verification" title={TITLE.verification}><Verification ledger={ledger} /></Guard>
             <div className="rule mx-5 md:mx-8" />
             <Guard id="screen" title={TITLE.screen}><Screen ledger={ledger} /></Guard>
+            <div className="rule mx-5 md:mx-8" />
+            <Guard id="query" title={TITLE.query}><Query /></Guard>
             <div className="rule mx-5 md:mx-8" />
             <Guard id="method" title={TITLE.method}><Method ledger={ledger} /></Guard>
           </>
