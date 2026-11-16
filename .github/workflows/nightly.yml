@@ -87,8 +87,14 @@ jobs:
           DAY=$(date -u +%Y.%m.%d)
           git commit -m "nightly: ${DAY}" -m "$(python -m freeze_ledger status)"
           git tag -f "v${DAY}"
-          git push origin HEAD
-          git push -f origin "v${DAY}"
+          # The branch and the tag go up in ONE atomic push: either both refs
+          # update or neither does, so a failure here really means nothing was
+          # committed. Two separate pushes once left main updated and the tag
+          # rejected ("missing necessary objects", #6): the data was public but
+          # untagged, the run failed, and the site deploy was skipped.
+          # `+` forces the tag only (a same-day rerun moves it, as `git tag -f`
+          # does); the branch still only fast-forwards.
+          git push --atomic origin HEAD "+refs/tags/v${DAY}"
 
       - name: Upload run log
         if: always()
