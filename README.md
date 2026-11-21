@@ -124,14 +124,14 @@ address,chain,source_class,entity,program,record_date,evidence_url,match_basis,a
 ## Status
 
 <!-- status:start -->
-As of the export of 2026-11-20 (`data/latest.json`; regenerate with `python scripts/readme_status.py`):
+As of the export of 2026-11-21 (`data/latest.json`; regenerate with `python scripts/readme_status.py`):
 
-- Events indexed: **18,395** public (80 issuer-internal rows kept and flagged)
-- Addresses frozen now: **12,441** (Tron USDT 8,289, Ethereum USDT 2,889, Ethereum USDC 712, Base USDC 524, Solana USDC 27)
+- Events indexed: **18,405** public (80 issuer-internal rows kept and flagged)
+- Addresses frozen now: **12,451** (Tron USDT 8,295, Ethereum USDT 2,889, Ethereum USDC 716, Base USDC 524, Solana USDC 27)
 - USDT destroyed after a freeze (all-time): **$1,448,857,061** (Ethereum $824,419,081, Tron $624,437,980)
-- Coverage, complete from each lane's first event: Base USDC 2023-08-18 → 2026-11-19; Ethereum USDC 2020-06-16 → 2026-11-20; Ethereum USDT 2017-11-28 → 2026-11-20; Solana USDC 2022-11-11 → 2026-11-07; Tron USDT 2020-06-26 → 2026-11-19
+- Coverage, complete from each lane's first event: Base USDC 2023-08-18 → 2026-11-19; Ethereum USDC 2020-06-16 → 2026-11-21; Ethereum USDT 2017-11-28 → 2026-11-20; Solana USDC 2022-11-11 → 2026-11-07; Tron USDT 2020-06-26 → 2026-11-21
 - Not yet covered: Solana USDT (not indexed yet)
-- Attribution: **731** frozen addresses with a High attribution, **61** Moderate; **12,949** (94.2%) with no public record found yet
+- Attribution: **731** frozen addresses with a High attribution, **61** Moderate; **12,959** (94.2%) with no public record found yet
 - OFAC listing to freeze, addresses listed to the day (median; the nightly SDN extract records a listing up to a day late, so "1 day before listing" is effectively the listing day): Circle on Base 1 day before listing (n=81); Circle on Ethereum the same day (n=149); Tether on Ethereum 107 days (n=149, 4 frozen more than a week before listing); Tether on Tron 1 day before listing (n=349, 46 frozen more than a week before listing)
 - Addresses OFAC has removed: 92; Circle on Base released 91 of 91 (median the same day as the removal); Circle on Ethereum released 92 of 92 (median the same day as the removal); Tether on Ethereum released 91 of 91 (median 2 days after removal)
 <!-- status:end -->
